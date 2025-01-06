@@ -1,4 +1,4 @@
-package com.anonymous.weaponwatchapp
+package com.weaponwatch.weaponwatchapp
 import expo.modules.splashscreen.SplashScreenManager
 
 import android.os.Build
