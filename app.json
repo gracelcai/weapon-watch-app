@@ -9,15 +9,13 @@
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
-      "supportsTablet": true,
-      "bundleIdentifier": "com.weaponwatch.weaponwatchapp"
+      "supportsTablet": true
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
-      },
-      "package": "com.weaponwatch.weaponwatchapp"
+      }
     },
     "web": {
       "bundler": "metro",
@@ -26,7 +24,6 @@
     },
     "plugins": [
       "expo-router",
-      "@react-native-google-signin/google-signin",
       [
         "expo-splash-screen",
         {
@@ -39,14 +36,6 @@
     ],
     "experiments": {
       "typedRoutes": true
-    },
-    "extra": {
-      "router": {
-        "origin": false
-      },
-      "eas": {
-        "projectId": "06ea69e1-0558-4caf-a624-dca4bcc41ff4"
-      }
     }
   }
 }

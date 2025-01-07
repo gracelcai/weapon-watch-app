@@ -7,8 +7,6 @@ import {
   StyleSheet,
 } from "react-native";
 import { FontAwesome } from '@expo/vector-icons';
-import { getAuth, signInWithRedirect } from "firebase/auth";
-
 
 
 
