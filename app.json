@@ -9,17 +9,13 @@
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
-      "supportsTablet": true,
-      "bundleIdentifier": "com.weaponwatch.weaponwatchapp",
-      "googleServicesFile": "./GoogleService-Info.plist"
+      "supportsTablet": true
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
-      },
-      "package": "com.weaponwatch.weaponwatchapp",
-      "googleServicesFile": "./google-services.json"
+      }
     },
     "web": {
       "bundler": "metro",
@@ -28,8 +24,6 @@
     },
     "plugins": [
       "expo-router",
-      "@react-native-firebase/app",
-      "@react-native-firebase/auth",
       [
         "expo-splash-screen",
         {
@@ -42,15 +36,6 @@
     ],
     "experiments": {
       "typedRoutes": true
-    },
-    "extra": {
-      "router": {
-        "origin": false
-      },
-      "eas": {
-        "projectId": "fa047e7f-1fa4-43dc-ab96-99aebb842238"
-      }
-    },
-    "owner": "weapon-watch"
+    }
   }
 }
