@@ -6,11 +6,19 @@ import {
   TouchableOpacity,
   StyleSheet,
 } from "react-native";
+import { Link, useRouter } from "expo-router";
 import { FontAwesome } from '@expo/vector-icons';
 
 
 
 export default function LoginForm() {
+  
+  const router = useRouter();
+
+  const handleLogin = () => {
+    router.push("/home");
+  };
+
   return (
     <View style={styles.container}>
       <View style={styles.card}>
@@ -47,9 +55,10 @@ export default function LoginForm() {
               secureTextEntry
             />
             
-            <TouchableOpacity style={[styles.button, styles.primaryButton]}>
+            <TouchableOpacity style={[styles.button, styles.primaryButton]} onPress={handleLogin}>
               <Text style={styles.loginButtonText}>Login</Text>
             </TouchableOpacity>
+
           </View>
           <View style={styles.footer}>
             <Text style={styles.footerText}>
@@ -116,6 +125,7 @@ const styles = StyleSheet.create({
   loginButtonText: {
     color: "#fff",
     fontSize: 16,
+    justifyContent: "center"
   },
   socialButtonText:{
     color: "#333",
