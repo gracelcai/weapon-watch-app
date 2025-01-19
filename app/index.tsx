@@ -1,34 +1,33 @@
-import { Platform, SafeAreaView, StatusBar } from "react-native";
-import {ThemedText} from "@/components/ThemedText";
-import {ThemedView} from "@/components/ThemedView";
+import { Text, View, StyleSheet} from "react-native";
 import {useNotification} from "@/context/NotificationContext";
 
 export default function HomeScreen() {
   const {notification, expoPushToken, error} = useNotification();
   
   if(error){
-    return <ThemedText>Error: {error.message}</ThemedText>;
+    return <Text>Error: {error.message}</Text>;
   }
-  console.log(JSON.stringify(notification, null, 2));
   return(
-    <ThemedView 
-      style={{flex: 1,
-              padding: 10,
-              paddingTop: Platform.OS == "android" ? StatusBar.currentHeight : 10,
-      }}>
-        <SafeAreaView style={{ flex: 1}}>
-        <ThemedText type-="subtitle">Your push token:</ThemedText>
-        <ThemedText>{expoPushToken}</ThemedText>
-        <ThemedText type="subtitle">Latest notification:</ThemedText>
-        <ThemedText>{notification?.request.content.title}</ThemedText>
-        <ThemedText>
+    <View style = {styles.container}>
+        <Text>Your push token:</Text>
+        <Text>{expoPushToken}</Text>
+        <Text>Latest notification:</Text>
+        <Text>{notification?.request.content.title}</Text>
+        <Text>
           {JSON.stringify(notification?.request.content.data, null, 2)}
-        </ThemedText>
-        </SafeAreaView>
-    </ThemedView>
-  );
+        </Text>
+    </View>
+  )
 }
-  
- 
-  
- 
+const styles = StyleSheet.create({
+  button: {
+    padding: 15,
+    borderRadius: 8,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  container: {
+    alignItems: "center",
+    justifyContent: "center",
+  }
+});
