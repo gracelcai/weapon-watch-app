@@ -12,12 +12,12 @@ def notify(q):
             if key == "stop":
                 break
             else:
-                with open('config.json') as f:
+                with open('notify.json') as f:
                     data = json.load(f)
-
+                    
                 data['detected'] = True
-
-                with open('config.json', 'w') as f:
+                
+                with open('notify.json', 'w') as f:
                     json.dump(data, f)
 
 def record(q):
@@ -30,11 +30,9 @@ def record(q):
                 print(key)
 
 def detect(notify_q, record_q):
-    # cap = cv2.VideoCapture(0)
-    cap = cv2.VideoCapture("videos/9mm_fast_walk.mp4")
-    # cap = cv2.VideoCapture("rtsp://rtspstream:775bd82e9bbedf71dcbc7ef60deaf484@zephyr.rtsp.stream/pattern")
+    cap = cv2.VideoCapture("videos/rifle2.MOV")
     
-    path = 'weapondetector'
+    path = 'detectionmodel'
     detect_weapon = tf.saved_model.load(path)
     
     while(True):        
@@ -87,6 +85,14 @@ def detect(notify_q, record_q):
     cv2.destroyAllWindows()
     
 if __name__ == "__main__":
+    with open('notify.json') as f:
+        data = json.load(f)
+
+    data['detected'] = False
+
+    with open('notify.json', 'w') as f:
+        json.dump(data, f)
+    
     notify_q = multiprocessing.Queue()
     record_q = multiprocessing.Queue()
     
