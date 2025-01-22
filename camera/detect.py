@@ -38,9 +38,9 @@ def detect(notify_q, record_q):
     detect_weapon = tf.saved_model.load(path)
     
     while(True):        
-        _, image_mask1 = cap.read()
+        _, frame = cap.read()
             
-        image_data = cv2.resize(image_mask1, (608, 608))
+        image_data = cv2.resize(frame, (608, 608))
         image_data = image_data / 255.
         image_data = image_data[np.newaxis, ...].astype(np.float32)
 
@@ -64,14 +64,14 @@ def detect(notify_q, record_q):
             score_threshold=0.3
         )
 
-        original_h, original_w, _ = image_mask1.shape
+        original_h, original_w, _ = frame.shape
         bboxes = utils.format_boxes(boxes.numpy()[0], original_h, original_w)
 
         pred_bbox = [bboxes, scores.numpy()[0], classes.numpy()[0], valid_detections.numpy()[0]]
         
-        image2 = utils.draw_bbox(image_mask1, pred_bbox, info=False, allowed_classes=['Gun', 'Knife', 'Rifle'])
+        frame = utils.draw_bbox(frame, pred_bbox, info=False)
         
-        cv2.imshow('Webcam', image2)
+        cv2.imshow('Webcam', frame)
         
         key = cv2.waitKey(1)
         if key == ord('q'):
