@@ -32,7 +32,7 @@ def draw_bbox(image, bboxes, info = False, show_label=True, classes=['Gun', 'Kni
         if class_name not in classes:
             continue
         else:
-            bbox_color = (0, 255, 0)
+            bbox_color = (38, 14, 194)
             bbox_thick = int(0.6 * (image_h + image_w) / 600)
             c1, c2 =  (int(coor[0]), int(coor[1])), (int(coor[2]), int(coor[3]))
             cv2.rectangle(image, c1, c2, bbox_color, bbox_thick)
