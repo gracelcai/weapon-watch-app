@@ -4,6 +4,7 @@ import cv2
 import utils as utils
 import multiprocessing
 import json
+import time
 
 def notify(q):
     while True:
@@ -35,6 +36,8 @@ def detect(notify_q, record_q):
     path = 'detectionmodel'
     detect_weapon = tf.saved_model.load(path)
     
+    start_time = time.time()
+    frame_count = 0
     while(True):        
         _, frame = cap.read()
             
@@ -51,7 +54,6 @@ def detect(notify_q, record_q):
             boxes = value[:, :, 0:4]
             pred_conf = value[:, :, 4:]
 
-        # run non max suppression on detections
         boxes, scores, classes, valid_detections = tf.image.combined_non_max_suppression(
             boxes=tf.reshape(boxes, (tf.shape(boxes)[0], -1, 1, 4)),
             scores=tf.reshape(
@@ -80,6 +82,9 @@ def detect(notify_q, record_q):
             notify_q.put("gun detected")
         elif key == ord('r'):
             record_q.put("start recording")
+            
+        frame_count += 1
+        print("FPS: ", frame_count / (time.time() - start_time), end='\r')
              
     cap.release()
     cv2.destroyAllWindows()
