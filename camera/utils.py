@@ -1,12 +1,5 @@
-#for opencv-python 4.5.3.56 use this util.py
-
 import cv2
-import random
-import colorsys
 import numpy as np
-import tensorflow as tf
-from config import cfg
-import re
 
 # helper function to convert bounding boxes from normalized ymin, xmin, ymax, xmax ---> xmin, ymin, xmax, ymax
 def format_boxes(bboxes, image_height, image_width):
