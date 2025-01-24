@@ -12,21 +12,18 @@ def notify(q):
             key = q.get()
             if type(key) == str:
                 break
-            else:   
-                with open('notify.json') as f:
-                    data = json.load(f)
-                data['detected'] = True
-                with open('notify.json', 'w') as f:
-                    json.dump(data, f)
-                             
-                for box in key:
-                    print(box)
+            else:
+                status = json.load(open('status.json'))
+                
+                status['detected'] = True
                     
-                with open('record.json') as f:
-                    data = json.load(f)
-                data['confirmed'] = True
-                with open('record.json', 'w') as f:
-                    json.dump(data, f)
+                # for box in key:
+                #     print(box)
+                    
+                status['confirmed'] = True
+                
+                with open('status.json', 'w') as f:
+                    json.dump(status, f, indent=4)
 
 def record(q):
     while True:
@@ -48,7 +45,7 @@ def detect(notify_q, record_q):
     recording = False
     while(True):
         if not recording:
-            with open('record.json') as f:
+            with open('status.json') as f:
                 data = json.load(f)
             
             if data['confirmed'] == True:
@@ -106,17 +103,11 @@ def detect(notify_q, record_q):
     cv2.destroyAllWindows()
     
 if __name__ == "__main__":        
-    with open('notify.json') as f:
-        data = json.load(f)
-    data['detected'] = False
-    with open('notify.json', 'w') as f:
-        json.dump(data, f)
-        
-    with open('record.json') as f:
-        data = json.load(f)
-    data['confirmed'] = False
-    with open('record.json', 'w') as f:
-        json.dump(data, f)
+    dic = {'detected': False,
+           'confirmed': False}
+    json_obj = json.dumps(dic, indent=4)
+    with open('status.json', 'w') as f:
+        f.write(json_obj)
     
     notify_q = multiprocessing.Queue()
     record_q = multiprocessing.Queue()
