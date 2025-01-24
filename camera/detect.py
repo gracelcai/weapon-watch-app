@@ -40,8 +40,8 @@ def detect(notify_q, record_q):
     path = 'detectionmodel'
     detect_weapon = tf.saved_model.load(path)
     
-    # start_time = time.time()
-    # frame_count = 0
+    start_time = time.time()
+    frame_count = 1
     recording = False
     while(True):
         if not recording:
@@ -88,6 +88,7 @@ def detect(notify_q, record_q):
             
             frame = utils.draw_bbox(frame, pred_bbox, info=False)
         
+        cv2.putText(frame, "FPS: {:.3f}".format(frame_count / (time.time() - start_time)), (10, 25), cv2.FONT_HERSHEY_SIMPLEX, 0.75, (0, 0, 255), 2)
         cv2.imshow('Footage', frame)
         
         key = cv2.waitKey(1)
@@ -96,9 +97,8 @@ def detect(notify_q, record_q):
             record_q.put("stop")
             break
             
-        # frame_count += 1
-        # print("FPS: ", frame_count / (time.time() - start_time), end='\r')
-                     
+        frame_count += 1
+                             
     cap.release()
     cv2.destroyAllWindows()
     
