@@ -15,14 +15,18 @@ def notify(q):
             else:   
                 with open('notify.json') as f:
                     data = json.load(f)
-                    
                 data['detected'] = True
-                
                 with open('notify.json', 'w') as f:
                     json.dump(data, f)
                              
                 for box in key:
                     print(box)
+                    
+                with open('record.json') as f:
+                    data = json.load(f)
+                data['confirmed'] = True
+                with open('record.json', 'w') as f:
+                    json.dump(data, f)
 
 def record(q):
     while True:
@@ -43,12 +47,13 @@ def detect(notify_q, record_q):
     # frame_count = 0
     recording = False
     while(True):
-        with open('notify.json') as f:
-            data = json.load(f)
-        
-        if data['detected'] == True and recording == False:
-            record_q.put("start recording")
-            recording = True
+        if not recording:
+            with open('record.json') as f:
+                data = json.load(f)
+            
+            if data['confirmed'] == True:
+                record_q.put("active event confirmed: recording started")
+                recording = True
                 
         _, frame = cap.read()
             
@@ -103,10 +108,14 @@ def detect(notify_q, record_q):
 if __name__ == "__main__":        
     with open('notify.json') as f:
         data = json.load(f)
-
     data['detected'] = False
-
     with open('notify.json', 'w') as f:
+        json.dump(data, f)
+        
+    with open('record.json') as f:
+        data = json.load(f)
+    data['confirmed'] = False
+    with open('record.json', 'w') as f:
         json.dump(data, f)
     
     notify_q = multiprocessing.Queue()
