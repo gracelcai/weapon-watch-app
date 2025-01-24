@@ -10,9 +10,9 @@ def notify(q):
     while True:
         if not q.empty():
             key = q.get()
-            if key == "stop":
+            if type(key) == str:
                 break
-            else:
+            else:   
                 with open('notify.json') as f:
                     data = json.load(f)
                     
@@ -20,6 +20,9 @@ def notify(q):
                 
                 with open('notify.json', 'w') as f:
                     json.dump(data, f)
+                             
+                for box in key:
+                    print(box)
 
 def record(q):
     while True:
@@ -36,9 +39,17 @@ def detect(notify_q, record_q):
     path = 'detectionmodel'
     detect_weapon = tf.saved_model.load(path)
     
-    start_time = time.time()
-    frame_count = 0
-    while(True):        
+    # start_time = time.time()
+    # frame_count = 0
+    recording = False
+    while(True):
+        with open('notify.json') as f:
+            data = json.load(f)
+        
+        if data['detected'] == True and recording == False:
+            record_q.put("start recording")
+            recording = True
+                
         _, frame = cap.read()
             
         image_data = cv2.resize(frame, (608, 608))
@@ -63,33 +74,33 @@ def detect(notify_q, record_q):
             iou_threshold=0.5,
             score_threshold=0.3
         )
+        valid_detections = valid_detections.numpy()[0]
+            
+        if valid_detections:
+            original_h, original_w, _ = frame.shape
+            bboxes = utils.format_boxes(boxes.numpy()[0][:valid_detections], original_h, original_w)
 
-        original_h, original_w, _ = frame.shape
-        bboxes = utils.format_boxes(boxes.numpy()[0], original_h, original_w)
-
-        pred_bbox = [bboxes, scores.numpy()[0], classes.numpy()[0], valid_detections.numpy()[0]]
+            notify_q.put(bboxes)
+            
+            pred_bbox = [bboxes, scores.numpy()[0], classes.numpy()[0], valid_detections]
+            
+            frame = utils.draw_bbox(frame, pred_bbox, info=False)
         
-        frame = utils.draw_bbox(frame, pred_bbox, info=False)
-        
-        cv2.imshow('Webcam', frame)
+        cv2.imshow('Footage', frame)
         
         key = cv2.waitKey(1)
         if key == ord('q'):
             notify_q.put("stop")
             record_q.put("stop")
             break
-        elif key == ord('n'):
-            notify_q.put("gun detected")
-        elif key == ord('r'):
-            record_q.put("start recording")
             
-        frame_count += 1
-        print("FPS: ", frame_count / (time.time() - start_time), end='\r')
-             
+        # frame_count += 1
+        # print("FPS: ", frame_count / (time.time() - start_time), end='\r')
+                     
     cap.release()
     cv2.destroyAllWindows()
     
-if __name__ == "__main__":
+if __name__ == "__main__":        
     with open('notify.json') as f:
         data = json.load(f)
 
