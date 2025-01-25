@@ -37,8 +37,10 @@ def record(q):
 def detect(notify_q, record_q):
     cap = cv2.VideoCapture("videos/rifle2.MOV")
     
+    print("loading model...")
     path = 'detectionmodel'
     detect_weapon = tf.saved_model.load(path)
+    print("model loaded\n")
     
     start_time = time.time()
     frame_count = 1
@@ -49,7 +51,7 @@ def detect(notify_q, record_q):
                 data = json.load(f)
             
             if data['confirmed'] == True:
-                record_q.put("active event confirmed: recording started")
+                record_q.put("\nactive event confirmed: recording started")
                 recording = True
                 
         _, frame = cap.read()
