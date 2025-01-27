@@ -6,33 +6,8 @@ import multiprocessing
 import json
 import time
 
-def notify(q):
-    while True:
-        if not q.empty():
-            key = q.get()
-            if type(key) == str:
-                break
-            else:
-                status = json.load(open('status.json'))
-                
-                status['detected'] = True
-                    
-                # for box in key:
-                #     print(box)
-                    
-                status['confirmed'] = True
-                
-                with open('status.json', 'w') as f:
-                    json.dump(status, f, indent=4)
-
-def record(q):
-    while True:
-        if not q.empty():
-            key = q.get()
-            if key == "stop":
-                break
-            else:
-                print(key)
+from confirm import confirm
+from record import record
 
 def detect(notify_q, record_q):
     cap = cv2.VideoCapture("videos/rifle2.MOV")
@@ -111,22 +86,22 @@ if __name__ == "__main__":
     with open('status.json', 'w') as f:
         f.write(json_obj)
     
-    notify_q = multiprocessing.Queue()
+    confirm_q = multiprocessing.Queue()
     record_q = multiprocessing.Queue()
     
-    notify_p = multiprocessing.Process(target=notify, args=(notify_q,))
-    notify_p.start()
+    confirm_p = multiprocessing.Process(target=confirm, args=(confirm_q,))
+    confirm_p.start()
     
     record_p = multiprocessing.Process(target=record, args=(record_q,))
     record_p.start()
     
-    detect(notify_q, record_q)
+    detect(confirm_q, record_q)
     
-    notify_q.close()
+    confirm_q.close()
     record_q.close()
     
-    notify_q.join_thread()
+    confirm_q.join_thread()
     record_q.join_thread()
     
-    notify_p.join()
+    confirm_p.join()
     record_p.join()
