@@ -1,6 +1,6 @@
 import numpy as np
-import tensorflow as tf
-import cv2
+import tensorflow as tf # type: ignore
+import cv2 # type: ignore
 import utils as utils
 import multiprocessing
 import json
