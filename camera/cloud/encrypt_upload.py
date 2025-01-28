@@ -9,7 +9,6 @@ from aws_cryptographic_material_providers.mpl.references import IKeyring
 
 import config
 
-
 def encrypt_and_upload(file_path, s3_key):
     client = aws_encryption_sdk.EncryptionSDKClient(
         commitment_policy=CommitmentPolicy.REQUIRE_ENCRYPT_REQUIRE_DECRYPT
