@@ -12,10 +12,10 @@ from record import record
 def detect(notify_q, record_q):
     cap = cv2.VideoCapture("videos/rifle2.MOV")
     
-    print("loading model...")
+    print("LOADING MODEL...\n")
     path = 'detectionmodel'
     detect_weapon = tf.saved_model.load(path)
-    print("model loaded\n")
+    print("\nMODEL LOADED\n")
     
     start_time = time.time()
     frame_count = 1
@@ -26,11 +26,14 @@ def detect(notify_q, record_q):
                 data = json.load(f)
             
             if data['confirmed'] == True:
-                record_q.put("\nactive event confirmed: recording started")
+                record_q.put("\nACTIVE EVENT CONFIRMED: RECORDING STARTED...")
                 recording = True
-                
-        _, frame = cap.read()
-            
+                        
+        ret, frame = cap.read()
+        if not ret:
+            record_q.put("finish")
+            break
+        
         image_data = cv2.resize(frame, (608, 608))
         image_data = image_data / 255.
         image_data = image_data[np.newaxis, ...].astype(np.float32)
