@@ -9,7 +9,14 @@
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.anonymous.weapon-watch-app",
+      "config": {
+        "usesNonExemptEncryption": false
+      },
+      "infoPlist": {
+        "NSLocationWhenInUseUsageDescription": "This app requires access to your location for tracking purposes."
+      }
     },
     "android": {
       "adaptiveIcon": {
