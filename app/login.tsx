@@ -22,14 +22,14 @@ export default function LoginScreen() {
     }
 
     if (role === "admin") {
-      router.push("/admin_dashboard");
+      router.push("/cameras");
     } else {
-      router.push("/student_dashboard");
+      router.push("/student_notifications");
     }
   };
 
   const handleGoogleLogin = () => {
-    alert("Google Login Clicked! (Integrate Firebase/Expo Auth here)");
+    alert("Google Login Clicked! (integrate Firebase Auth here)");
   };
 
   return (

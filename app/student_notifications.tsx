@@ -50,9 +50,9 @@ export default function StudentNotifications() {
         </View>
       </ScrollView>
 
-      {/* Back to Dashboard */}
-      <TouchableOpacity style={styles.dashboardButton} onPress={() => router.push("/student_dashboard")}>
-        <Text style={styles.dashboardButtonText}>DASHBOARD</Text>
+      {/* Back to Settings */}
+      <TouchableOpacity style={styles.dashboardButton} onPress={() => router.push("/student_settings")}>
+        <Text style={styles.dashboardButtonText}>SETTINGS</Text>
       </TouchableOpacity>
     </View>
   );
