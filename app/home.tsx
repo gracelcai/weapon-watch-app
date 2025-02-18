@@ -7,7 +7,7 @@ export default function Home() {
     <View style={styles.container}>
       {/* Logo */}
       <Image
-        source={require("../red-white-logo.png")}
+        source={require("..assets//red-white-logo.png")}
         style={styles.logo}
       />
 
