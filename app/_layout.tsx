@@ -1,78 +1,62 @@
-import React, { useState } from "react";
-import { View, Text, Image, TouchableOpacity, StyleSheet, ScrollView } from "react-native";
+import React from "react";
+import { Stack, usePathname } from "expo-router";
+import { View, TouchableOpacity, StyleSheet } from "react-native";
+import { FontAwesome5 } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 
-export default function CameraManagement() {
+export default function RootLayout() {
   const router = useRouter();
-  const [expandedGroups, setExpandedGroups] = useState<{ [key: string]: boolean }>({});
+  const pathname = usePathname(); // Get current page
 
-  const toggleGroup = (group: string) => {
-    setExpandedGroups((prev) => ({
-      ...prev,
-      [group]: !prev[group],
-    }));
-  };
+  const isActive = (path: string) => pathname === path;
+
+  // Hide the bottom navigation bar on the home, login, and landing page
+  const shouldShowNavBar = !["/", "/login", "/home", "/student_notifications", "/student_settings"].includes(pathname);
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>CAMERA MANAGEMENT</Text>
-      <Text style={styles.title}>ACTIVE CAMERAS <Text style={styles.redDot}>⬤</Text></Text>
+    <>
+      <Stack screenOptions={{ headerShown: false }} />
 
-      <ScrollView contentContainerStyle={styles.scrollContent}>
-        {/* Active Cameras */}
-        <View style={styles.cameraContainer}>
-          <Text style={styles.cameraLabel}>FLOOR I - HALLWAY - CAM 2 / RIGHT</Text>
-          <Image source={require("..assets//school1.png")} style={styles.cameraImage} />
+      {/* Show Bottom Navigation Bar only if not on home, login, or landing */}
+      {shouldShowNavBar && (
+        <View style={styles.navBar}>
+          <TouchableOpacity onPress={() => router.push("/tracking")} style={styles.navItem}>
+            <FontAwesome5 name="map-marker-alt" size={24} color={isActive("/tracking") ? "#fff" : "#777"} />
+          </TouchableOpacity>
+          <TouchableOpacity onPress={() => router.push("/cameras")} style={styles.navItem}>
+            <FontAwesome5 name="video" size={24} color={isActive("/cameras") ? "#fff" : "#777"} />
+          </TouchableOpacity>
+          <TouchableOpacity onPress={() => router.push("/verification")} style={styles.navItem}>
+            <FontAwesome5 name="shield-alt" size={24} color={isActive("/verification") ? "#fff" : "#777"} />
+          </TouchableOpacity>
+          <TouchableOpacity onPress={() => router.push("/admin_notifications")} style={styles.navItem}>
+            <FontAwesome5 name="bell" size={24} color={isActive("/notifications") ? "#fff" : "#777"} />
+          </TouchableOpacity>
+          <TouchableOpacity onPress={() => router.push("/settings")} style={styles.navItem}>
+            <FontAwesome5 name="cog" size={24} color={isActive("/settings") ? "#fff" : "#777"} />
+          </TouchableOpacity>
         </View>
-
-        <View style={styles.cameraContainer}>
-          <Text style={styles.cameraLabel}>FLOOR I - CLASS 102 - CAM 1</Text>
-          <Image source={require("..assets//school2.webp")} style={styles.cameraImage} />
-        </View>
-
-        {/* Camera Groups */}
-        <View style={styles.groupsContainer}>
-          <Text style={styles.groupsTitle}>CAMERA GROUPS</Text>
-
-          {["FLOOR I - CAFE", "FLOOR I - AUDITORIUM", "FLOOR II - HALLWAY 1", "FLOOR II - HALLWAY 2", "OUTSIDE - FRONT ENTRANCE"].map(
-            (group, index) => (
-              <TouchableOpacity key={index} style={styles.groupItem} onPress={() => toggleGroup(group)}>
-                <Text style={styles.groupText}>{expandedGroups[group] ? "▼" : "▶"} {group}</Text>
-              </TouchableOpacity>
-            )
-          )}
-        </View>
-      </ScrollView>
-    </View>
+      )}
+    </>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#000", padding: 16, paddingTop: 60},
-  title: { color: "#fff", fontSize: 22, fontWeight: "bold", textAlign: "center", marginBottom: 10 },
-  subtitle: { color: "#fff", fontSize: 14, textAlign: "center", marginBottom: 10 },
-  redDot: { color: "red" },
-  scrollContent: { paddingBottom: 100 },
-
-  cameraContainer: { marginBottom: 20 },
-  cameraLabel: { color: "#fff", fontSize: 14, fontWeight: "bold", marginBottom: 5 },
-  cameraImage: { width: "100%", height: 150, borderRadius: 8 },
-
-  groupsContainer: { marginTop: 20 },
-  groupsTitle: { color: "#fff", fontSize: 16, fontWeight: "bold", marginBottom: 10 },
-  groupItem: { backgroundColor: "#222", padding: 10, marginVertical: 5, borderRadius: 5 },
-  groupText: { color: "#fff", fontSize: 14 },
-
-  navbar: {
-    position: "absolute",
-    bottom: 0,
-    left: 0,
-    right: 0,
-    backgroundColor: "#ddd",
+  navBar: {
     flexDirection: "row",
     justifyContent: "space-around",
-    padding: 10,
+    alignItems: "center",
+    backgroundColor: "#000",
+    paddingVertical: 10,
+    borderTopWidth: 1,
+    borderTopColor: "#222",
+    position: "absolute",
+    left: 0,
+    right: 0,
+    bottom: 20,
   },
-  navIcon: { fontSize: 24 },
+  navItem: {
+    flex: 1,
+    alignItems: "center",
+  },
 });
-
