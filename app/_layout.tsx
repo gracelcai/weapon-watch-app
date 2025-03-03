@@ -21,19 +21,19 @@ export default function RootLayout() {
       {shouldShowNavBar && (
         <View style={styles.navBar}>
           <TouchableOpacity onPress={() => router.push("/screens/tracking")} style={styles.navItem}>
-            <FontAwesome5 name="map-marker-alt" size={24} color={isActive("/tracking") ? "#fff" : "#777"} />
+            <FontAwesome5 name="map-marker-alt" size={24} color={isActive("/screens/tracking") ? "#fff" : "#777"} />
           </TouchableOpacity>
           <TouchableOpacity onPress={() => router.push("/screens/cameras")} style={styles.navItem}>
-            <FontAwesome5 name="video" size={24} color={isActive("/cameras") ? "#fff" : "#777"} />
+            <FontAwesome5 name="video" size={24} color={isActive("/screens/cameras") ? "#fff" : "#777"} />
           </TouchableOpacity>
           <TouchableOpacity onPress={() => router.push("/screens/verification")} style={styles.navItem}>
-            <FontAwesome5 name="shield-alt" size={24} color={isActive("/verification") ? "#fff" : "#777"} />
+            <FontAwesome5 name="shield-alt" size={24} color={isActive("/screens/verification") ? "#fff" : "#777"} />
           </TouchableOpacity>
           <TouchableOpacity onPress={() => router.push("/screens/admin_notifications")} style={styles.navItem}>
-            <FontAwesome5 name="bell" size={24} color={isActive("/notifications") ? "#fff" : "#777"} />
+            <FontAwesome5 name="bell" size={24} color={isActive("/screens/admin_notifications") ? "#fff" : "#777"} />
           </TouchableOpacity>
           <TouchableOpacity onPress={() => router.push("/screens/settings")} style={styles.navItem}>
-            <FontAwesome5 name="cog" size={24} color={isActive("/settings") ? "#fff" : "#777"} />
+            <FontAwesome5 name="cog" size={24} color={isActive("/screens/settings") ? "#fff" : "#777"} />
           </TouchableOpacity>
         </View>
       )}
