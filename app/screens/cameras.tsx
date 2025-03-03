@@ -22,12 +22,12 @@ export default function CameraManagement() {
         {/* Active Cameras */}
         <View style={styles.cameraContainer}>
           <Text style={styles.cameraLabel}>FLOOR I - HALLWAY - CAM 2 / RIGHT</Text>
-          <Image source={require("..assets/images/school1.png")} style={styles.cameraImage} />
+          <Image source={require("../../assets/images/school1.png")} style={styles.cameraImage} />
         </View>
 
         <View style={styles.cameraContainer}>
           <Text style={styles.cameraLabel}>FLOOR I - CLASS 102 - CAM 1</Text>
-          <Image source={require("..assets/images/school2.webp")} style={styles.cameraImage} />
+          <Image source={require("../../assets/images/school2.webp")} style={styles.cameraImage} />
         </View>
 
         {/* Camera Groups */}

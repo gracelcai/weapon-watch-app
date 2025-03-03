@@ -20,7 +20,7 @@ export default function VerificationScreen() {
       <Text style={styles.title}>Potential threat detected</Text>
 
       {/* Threat Image */}
-      <Image source={require("..assets/images/shooter.avif")} style={styles.image} />
+      <Image source={require("../../assets/images/shooter.avif")} style={styles.image} />
 
       {/* Action Buttons */}
       <TouchableOpacity style={styles.confirmButton} onPress={handleConfirmThreat}>

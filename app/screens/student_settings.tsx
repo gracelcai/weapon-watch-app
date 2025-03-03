@@ -17,7 +17,7 @@ export default function Settings() {
 
   const handleLogout = () => {
     // Navigate to the login page
-    router.push("/login");
+    router.push("/screens/login");
   };
 
   const handleSaveChanges = () => {
@@ -67,7 +67,7 @@ export default function Settings() {
       </TouchableOpacity>
 
       {/* Back to Dashboard */}
-      <TouchableOpacity style={styles.dashboardButton} onPress={() => router.push("/student_dashboard")}>
+      <TouchableOpacity style={styles.dashboardButton} onPress={() => router.push("/unimplemented/student_dashboard")}>
         <Text style={styles.dashboardButtonText}>DASHBOARD</Text>
       </TouchableOpacity>
     </View>

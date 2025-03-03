@@ -22,9 +22,9 @@ export default function LoginScreen() {
     }
 
     if (role === "admin") {
-      router.push("/cameras");
+      router.push("/screens/cameras");
     } else {
-      router.push("/student_notifications");
+      router.push("/screens/student_notifications");
     }
   };
 
@@ -35,7 +35,7 @@ export default function LoginScreen() {
   return (
     <View style={styles.container}>
       {/* Back Button */}
-      <TouchableOpacity style={styles.backButton} onPress={() => router.push("/home")}>
+      <TouchableOpacity style={styles.backButton} onPress={() => router.push("/screens/home")}>
         <FontAwesome name="arrow-left" size={20} color="#fff" />
         <Text style={styles.backText}>Back</Text>
       </TouchableOpacity>

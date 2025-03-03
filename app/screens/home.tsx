@@ -7,7 +7,7 @@ export default function Home() {
     <View style={styles.container}>
       {/* Logo */}
       <Image
-        source={require("..assets/images/red-white-logo.png")}
+        source={require("../../assets/images/red-white-logo.png")}
         style={styles.logo}
       />
 
@@ -16,7 +16,7 @@ export default function Home() {
 
       {/* Button */}
       <TouchableOpacity style={styles.button}>
-        <Link href="/login" style={styles.buttonText}>
+        <Link href="/screens/login" style={styles.buttonText}>
           LOGIN
         </Link>
       </TouchableOpacity>
