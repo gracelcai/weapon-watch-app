@@ -11,8 +11,8 @@ def record(q):
             if key == "stop":
                 break
             elif key == "finish":
-                source_file = "videos/rifle2.MOV"
-                destination_file = "ACTIVE_EVENT.mp4"
+                source_file = "camera/videos/rifle2.MOV"
+                destination_file = "camera/ACTIVE_EVENT.mp4"
 
                 time.sleep(3)
 

@@ -10,10 +10,10 @@ from confirm import confirm
 from record import record
 
 def detect(notify_q, record_q):
-    cap = cv2.VideoCapture("videos/rifle2.MOV")
+    cap = cv2.VideoCapture("camera/videos/rifle2.MOV")
     
     print("LOADING MODEL...\n")
-    path = 'detectionmodel'
+    path = 'camera/detectionmodel'
     detect_weapon = tf.saved_model.load(path)
     print("\nMODEL LOADED\n")
     
@@ -41,7 +41,7 @@ def detect(notify_q, record_q):
         infer_weapon = detect_weapon.signatures['serving_default']
 
         batch_data = tf.constant(image_data)
-        pred_bbox = infer_weapon(batch_data)
+        pred_bbox = infer_weapon(input_1 = batch_data)
 
         for key, value in pred_bbox.items():
             boxes = value[:, :, 0:4]
