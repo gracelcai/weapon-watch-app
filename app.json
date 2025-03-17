@@ -42,7 +42,10 @@
           "icon": "./assets/images/app-logo.png",
           "color": "#ffffff",
           "defaultChannel": "default",
-          "enableBackgroundRemoteNotifications": false
+          "enableBackgroundRemoteNotifications": false,
+          "sounds": [
+            "./assets/sounds/emergencysos.wav"
+          ]
         }
       ]
     ],
