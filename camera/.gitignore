@@ -156,4 +156,4 @@ app-example
 google-services.json
 
 # Ignore detection model directory
-detectionmodel
+detectionmodel/
