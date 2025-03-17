@@ -5,11 +5,12 @@ import { Platform } from "react-native";
 
 export async function registerForPushNotificationsAsync() {
   if (Platform.OS === "android") {
-    await Notifications.setNotificationChannelAsync("default", {
-      name: "default",
+    await Notifications.setNotificationChannelAsync("weapon_detected", {
+      name: "Confirm threat",
       importance: Notifications.AndroidImportance.MAX,
       vibrationPattern: [0, 250, 250, 250],
       lightColor: "#FF231F7C",
+      sound: 'emergencysos.wav',
     });
   }
 
