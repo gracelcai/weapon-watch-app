@@ -5,12 +5,29 @@ import utils as utils
 import multiprocessing
 import json
 import time
+import subprocess
 
 from confirm import confirm
 from record import record
 
 def detect(notify_q, record_q):
-    cap = cv2.VideoCapture("camera/videos/rifle2.MOV")
+    rtsp_url = "rtsp://test:WeaponWatch1@192.168.1.248:554/h264Preview_01_main"
+    ffmpeg_cmd = [
+        'ffmpeg',
+        '-buffer_size', '100000',
+        '-rtsp_transport', 'tcp',
+        '-protocol_whitelist',  'rtp,file,udp,tcp',
+        '-i', rtsp_url,
+        '-f', 'image2pipe',
+        '-pix_fmt', 'bgr24',
+        '-vcodec', 'rawvideo',
+        '-'
+    ]
+    
+    process = subprocess.Popen(ffmpeg_cmd, stdout=subprocess.PIPE, bufsize=10**8)
+    
+    width = 3840  # Set the width of the video stream
+    height = 2160  # Set the height of the video stream
     
     print("LOADING MODEL...\n")
     path = 'camera/detectionmodel'
@@ -28,11 +45,14 @@ def detect(notify_q, record_q):
             if data['confirmed'] == True:
                 record_q.put("\nACTIVE EVENT CONFIRMED: RECORDING STARTED...")
                 recording = True
-                        
-        ret, frame = cap.read()
-        if not ret:
+        
+        raw_frame = process.stdout.read(width * height * 3)
+        if len(raw_frame) != width * height * 3:
+            print("Error: Could not read frame from video stream")
             record_q.put("finish")
             break
+        
+        frame = np.frombuffer(raw_frame, np.uint8).reshape((height, width, 3)).copy()
         
         image_data = cv2.resize(frame, (608, 608))
         image_data = image_data / 255.
@@ -79,7 +99,8 @@ def detect(notify_q, record_q):
             
         frame_count += 1
                              
-    cap.release()
+    process.stdout.close()
+    process.wait()
     cv2.destroyAllWindows()
     
 if __name__ == "__main__":        

@@ -38,5 +38,5 @@ def confirm(q):
                 status['detected'] = True                    
                 status['confirmed'] = True
                 
-                with open('status.json', 'w') as f:
-                    json.dump(status, f, indent=4)
+                # with open('status.json', 'w') as f:
+                #     json.dump(status, f, indent=4)
