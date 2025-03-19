@@ -40,3 +40,5 @@ app-example
 google-services.json
 
 venv
+
+camera/detectionmodel
