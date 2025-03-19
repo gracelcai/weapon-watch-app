@@ -47,7 +47,7 @@ def detect(notify_q, record_q, rtsp_stream):
         infer_weapon = detect_weapon.signatures['serving_default']
 
         batch_data = tf.constant(image_data)
-        pred_bbox = infer_weapon(input_1=batch_data)
+        pred_bbox = infer_weapon(batch_data)
 
         for key, value in pred_bbox.items():
             boxes = value[:, :, 0:4]
