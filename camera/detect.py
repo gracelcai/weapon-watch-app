@@ -32,13 +32,16 @@ def detect(notify_q, record_q, rtsp_stream):
             rtsp_stream.stop()
             break
 
-        if not recording:
+        if recording:
+            record_q.put(frame)
+        else:
             with open('status.json') as f:
                 data = json.load(f)
 
             if data['confirmed'] == True:
-                record_q.put("\nACTIVE EVENT CONFIRMED: RECORDING STARTED...")
+                record_q.put("start")
                 recording = True
+        
 
         image_data = cv2.resize(frame, (608, 608))
         image_data = image_data / 255.
@@ -79,6 +82,9 @@ def detect(notify_q, record_q, rtsp_stream):
             cv2.namedWindow("Preview", cv2.WINDOW_NORMAL)
             cv2.imshow('Footage', frame)
             key = cv2.waitKey(1)
+            if key == ord('f'):
+                record_q.put('finish')
+                break
             if key == ord('q'):
                 notify_q.put("stop")
                 record_q.put("stop")
@@ -97,6 +103,9 @@ if __name__ == "__main__":
     with open('status.json', 'w') as f:
         f.write(json_obj)
 
+    rtsp_url = "rtsp://test:WeaponWatch1@192.168.1.248:554/"  
+    rtsp_stream = RTSPStream(rtsp_url)
+
     confirm_q = multiprocessing.Queue()
     record_q = multiprocessing.Queue()
 
@@ -105,10 +114,6 @@ if __name__ == "__main__":
 
     record_p = multiprocessing.Process(target=record, args=(record_q,))
     record_p.start()
-
-    
-    rtsp_url = "rtsp://test:WeaponWatch1@192.168.1.248:554/"  
-    rtsp_stream = RTSPStream(rtsp_url)
 
     detect(confirm_q, record_q, rtsp_stream)
     rtsp_stream.stop()
