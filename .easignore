@@ -37,3 +37,6 @@ yarn-error.*
 
 app-example
 
+venv
+
+camera/detectionmodel

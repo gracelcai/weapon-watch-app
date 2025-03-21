@@ -9,6 +9,7 @@ import React, {
 import * as Notifications from "expo-notifications";
 import { EventSubscription } from "expo-modules-core";
 import { registerForPushNotificationsAsync } from "@/utils/registerForPushNotificationsAsync";
+import { router } from "expo-router";
 
 interface NotificationContextType {
   expoPushToken: string | null;
@@ -64,7 +65,13 @@ export const NotificationProvider: React.FC<NotificationProviderProps> = ({
           JSON.stringify(response, null, 2),
           JSON.stringify(response.notification.request.content.data, null, 2)
         );
-        // Handle the notification response here
+        const url = response.notification.request.content.data.url;
+        console.log(url);
+        if (url) {
+          // Navigate to the provided URL
+          router.push(url);
+          console.log(url);
+        }
       });
 
     return () => {
