@@ -42,5 +42,5 @@ venv
 
 camera/detectionmodel
 
-/ios
-/android
+ios/
+android/
