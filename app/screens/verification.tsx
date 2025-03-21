@@ -1,8 +1,10 @@
 import React from "react";
 import { View, Text, Image, TouchableOpacity, StyleSheet } from "react-native";
 import { useRouter } from "expo-router";
+import { useNotification } from "@/context/NotificationContext";
 
 export default function VerificationScreen() {
+  const {notification, expoPushToken, error} = useNotification();
   const router = useRouter();
 
   const handleConfirmThreat = () => {

@@ -16,15 +16,15 @@ def confirm(q):
                 break
             else:
                 status = json.load(open('status.json'))
-                #replace this token with the expo token you get from running the app on your phone with npx expo start
-                push_token = "ExponentPushToken[eBiWRAPTeF1i5Wgm8M4tyC]"
+                push_token = "ExponentPushToken[wrCSHlGvsM9kITDZvObGE8]"
 
                 message = PushMessage(
                     to=push_token,
                     channel_id="weapon_detected",
                     sound="emergencysos.wav",
                     title="Weapon Detected!",
-                    body="A potential weapon has been detected. Please check immediately."
+                    body="A potential weapon has been detected. Please check immediately.",
+                    data={"url": "screens/verification"}
                 )
                     
                 # for box in key:

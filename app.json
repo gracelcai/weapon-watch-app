@@ -10,7 +10,7 @@
     "newArchEnabled": true,
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.anonymous.weapon-watch-app",
+      "bundleIdentifier": "com.anonymous.weaponwatchapp",
       "config": {
         "usesNonExemptEncryption": false
       },
@@ -64,7 +64,14 @@
       },
       "eas": {
         "projectId": "fc32b543-4598-49b6-85ee-879ff2429ec9"
-      }
+      },
+      "FIREBASE_API_KEY": "AIzaSyDHk0klPy-P91o-mIz1wareq3whjb7G_Vc",
+      "FIREBASE_AUTH_DOMAIN": "weapon-watch.firebaseapp.com",
+      "FIREBASE_PROJECT_ID": "weapon-watch",
+      "FIREBASE_STORAGE_BUCKET": "weapon-watch.firebasestorage.app",
+      "FIREBASE_MESSAGING_SENDER_ID": "564211480519",
+      "FIREBASE_APP_ID": "1:564211480519:web:52ffe4493934f5c3294be2",
+      "FIREBASE_MEASUREMENT_ID": "G-047LE9EPD8"
     },
     "owner": "keguida"
   }

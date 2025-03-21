@@ -3,6 +3,16 @@ import { Stack, usePathname } from "expo-router";
 import { View, TouchableOpacity, StyleSheet } from "react-native";
 import { FontAwesome5 } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
+import * as Notifications from 'expo-notifications';
+import { NotificationProvider } from "@/context/NotificationContext";
+
+Notifications.setNotificationHandler({
+  handleNotification: async () => ({
+    shouldShowAlert: true,
+    shouldPlaySound: true,
+    shouldSetBadge: false,
+  }),
+});
 
 export default function RootLayout() {
   const router = useRouter();
@@ -14,7 +24,7 @@ export default function RootLayout() {
   const shouldShowNavBar = !["/", "/screens/login", "/screens/home", "/screens/student_notifications", "/screens/student_settings"].includes(pathname);
 
   return (
-    <>
+    <NotificationProvider>
       <Stack screenOptions={{ headerShown: false }} />
 
       {/* Show Bottom Navigation Bar only if not on home, login, or landing */}
@@ -37,7 +47,7 @@ export default function RootLayout() {
           </TouchableOpacity>
         </View>
       )}
-    </>
+    </NotificationProvider>
   );
 }
 
