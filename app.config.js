@@ -26,7 +26,12 @@ import 'dotenv/config';
           backgroundColor: "#ffffff"
         },
         package: "dev.expo.weaponwatch",
-        googleServicesFile: "./google-services.json"
+        googleServicesFile: "./google-services.json",
+        config: {
+        googleMaps:{
+          apiKey:"AIzaSyDKm1firMceRode6_VY7NwmrmBAfuYoxQk"
+        }
+      }
       },
       web: {
         bundler: "metro",
