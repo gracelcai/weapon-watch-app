@@ -25,6 +25,7 @@ import 'dotenv/config';
           foregroundImage: "./assets/images/adaptive-icon.png",
           backgroundColor: "#ffffff"
         },
+        package: "dev.expo.weaponwatch",
         googleServicesFile: "./google-services.json"
       },
       web: {
