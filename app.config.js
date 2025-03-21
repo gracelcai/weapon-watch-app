@@ -25,13 +25,7 @@ import 'dotenv/config';
           foregroundImage: "./assets/images/adaptive-icon.png",
           backgroundColor: "#ffffff"
         },
-        package: "dev.expo.weaponwatch",
-        googleServicesFile: "./google-services.json",
-        config: {
-        googleMaps:{
-          apiKey:"AIzaSyDKm1firMceRode6_VY7NwmrmBAfuYoxQk"
-        }
-      }
+        googleServicesFile: "./google-services.json"
       },
       web: {
         bundler: "metro",
