@@ -1,42 +1,43 @@
 import cv2
 import shutil
 import time
+import numpy as np
 
 # from cloud.encrypt_upload import encrypt_and_upload
 
 def record(q):
+    out = None
     while True:
-        if not q.empty():
-            key = q.get()
-            if key == "stop":
+        key = q.get()
+        if type(key) == str:
+            if key == "start":
+                print("Recording started...")
+            elif key == "stop":
+                print("Recording stopped.")
                 break
             elif key == "finish":
-                source_file = "camera/videos/rifle2.MOV"
+                source_file = "camera/footage.mp4"
                 destination_file = "camera/ACTIVE_EVENT.mp4"
 
                 time.sleep(3)
 
                 shutil.copy(source_file, destination_file)
                 # encrypt_and_upload("ACTIVE_EVENT.mp4", "ACTIVE_EVENT.mp4")
-                
+            
                 print("ACTIVE EVENT OVER\n")
                 print("SUCCESFULLY DOWNLOADED ACTIVE EVENT FOOTAGE\n")
-            else:
-                print(key)            
-                
-                # cap = cv2.VideoCapture('rtsp://rtspstream:oG2yLaie9XWG-LBgjEoUs@zephyr.rtsp.stream/movie')
-                # if(cap.isOpened)==False:
-                #     print("Error while reading the file")
-                    
-                # fourcc = cv2.VideoWriter_fourcc(*'MP42')
-                # out = cv2.VideoWriter('footage.mp4', fourcc, 20.0, (720, 480), True)
-                
-                # while(True):
-                #     ret,photo=cap.read()
-                #     out.write(photo)
-                #     key = cv2.waitKey(1)
-                #     if key == ord('q'):
-                #         break
-                
-                # cap.release()
-                # cv2.destroyAllWindows()
+                break
+        elif isinstance(key, np.ndarray):
+            if out is None:
+                # Dynamically set resolution based on the first frame
+                height, width, _ = key.shape
+                fourcc = cv2.VideoWriter_fourcc(*'mp4v')
+                out = cv2.VideoWriter('camera/footage.mp4', fourcc, 20.0, (width, height), True)
+            if out:
+                out.write(key)
+                key = cv2.waitKey(1)
+                if key == ord('q'):
+                    break
+            
+    if out:
+        out.release()
