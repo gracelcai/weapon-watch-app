@@ -16,7 +16,7 @@ def confirm(q):
                 break
             else:
                 status = json.load(open('status.json'))
-                push_token = "ExponentPushToken[wrCSHlGvsM9kITDZvObGE8]"
+                push_token = "ExponentPushToken[b0O88ZIBdA5tWkdd8B-iOD]"
 
                 message = PushMessage(
                     to=push_token,

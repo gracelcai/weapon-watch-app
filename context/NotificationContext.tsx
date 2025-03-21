@@ -66,11 +66,9 @@ export const NotificationProvider: React.FC<NotificationProviderProps> = ({
           JSON.stringify(response.notification.request.content.data, null, 2)
         );
         const url = response.notification.request.content.data.url;
-        console.log(url);
         if (url) {
           // Navigate to the provided URL
           router.push(url);
-          console.log(url);
         }
       });
 
