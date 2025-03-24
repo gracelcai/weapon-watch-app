@@ -7,7 +7,7 @@ const { FIREBASE_API_KEY,
         FIREBASE_MESSAGING_SENDER_ID, 
         FIREBASE_APP_ID, 
         FIREBASE_MEASUREMENT_ID
- } = Constants.manifest.extra;
+ } = Constants.expoConfig.extra;
 
 
 // Import the functions you need from the SDKs you need

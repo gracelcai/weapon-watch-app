@@ -10,7 +10,7 @@
     "newArchEnabled": true,
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.anonymous.weapon-watch-app",
+      "bundleIdentifier": "com.anonymous.weaponwatchapp",
       "config": {
         "usesNonExemptEncryption": false
       },
@@ -22,7 +22,9 @@
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
-      }
+      },
+      "package": "dev.expo.weaponwatch",
+      "googleServicesFile": "./google-services.json"
     },
     "web": {
       "bundler": "metro",
@@ -39,10 +41,31 @@
           "resizeMode": "contain",
           "backgroundColor": "#ffffff"
         }
+      ],
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/images/app-logo.png",
+          "color": "#ffffff",
+          "defaultChannel": "default",
+          "enableBackgroundRemoteNotifications": false,
+          "sounds": [
+            "./assets/sounds/emergencysos.wav"
+          ]
+        }
       ]
     ],
     "experiments": {
       "typedRoutes": true
-    }
+    },
+    "extra": {
+      "router": {
+        "origin": false
+      },
+      "eas": {
+        "projectId": "fc32b543-4598-49b6-85ee-879ff2429ec9"
+      }
+    },
+    "owner": "keguida"
   }
 }

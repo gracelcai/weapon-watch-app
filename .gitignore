@@ -37,3 +37,12 @@ yarn-error.*
 *.tsbuildinfo
 
 app-example
+
+google-services.json
+
+venv
+
+camera/detectionmodel
+
+ios/
+android/
