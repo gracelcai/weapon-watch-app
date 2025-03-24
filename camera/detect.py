@@ -5,9 +5,6 @@ import utils as utils
 import multiprocessing
 import json
 import time
-import subprocess
-import threading
-import queue
 
 from confirm import confirm
 from record import record
@@ -103,9 +100,14 @@ if __name__ == "__main__":
     with open('status.json', 'w') as f:
         f.write(json_obj)
 
-    rtsp_url = "rtsp://test:WeaponWatch1@192.168.1.248:554/"  
-    rtsp_stream = RTSPStream(rtsp_url)
-
+    with open('rtsps.txt', 'r') as file:
+        content = file.read()
+        rtsp_urls = content.split('\n')
+      
+    rtsp_streams = []
+    for rtsp_url in rtsp_urls:
+        rtsp_streams.append(RTSPStream(rtsp_url))
+        
     confirm_q = multiprocessing.Queue()
     record_q = multiprocessing.Queue()
 
@@ -126,4 +128,4 @@ if __name__ == "__main__":
     record_q.join_thread()
 
     confirm_p.join()
-    record_p.join()
+    record_p.join()  
