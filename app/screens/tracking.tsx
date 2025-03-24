@@ -1,7 +1,6 @@
 import React from "react";
 import { View, Text, StyleSheet, Platform } from "react-native";
 import MapView, { Marker } from "react-native-maps";
-import { PROVIDER_GOOGLE } from "react-native-maps";
 
 export default function TrackingPage() {
   return (
@@ -17,7 +16,6 @@ export default function TrackingPage() {
             latitudeDelta: 0.05,
             longitudeDelta: 0.05,
           }}
-          provider={PROVIDER_GOOGLE}
         >
           <Marker coordinate={{ latitude: 37.7749, longitude: -122.4194 }} title="Camera 1 - Entry" />
           <Marker coordinate={{ latitude: 37.7849, longitude: -122.4294 }} title="Camera 2 - East" />
