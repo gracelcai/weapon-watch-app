@@ -7,14 +7,22 @@
         "./*"
       ]
     },
-    
+    "allowJs": true,
+    "target": "es5",
+    "module": "commonjs",
+    "jsx": "react",
+    "moduleResolution": "node",
+    "skipLibCheck": true,
     "esModuleInterop": true
       
   },
+  "exclude": ["node_modules"],
   "include": [
     "**/*.ts",
     "**/*.tsx",
     ".expo/types/**/*.ts",
-    "expo-env.d.ts"
+    "expo-env.d.ts",
+    "src",
+    "services"
   ]
 }

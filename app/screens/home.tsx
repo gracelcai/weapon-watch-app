@@ -1,8 +1,10 @@
 import React from "react";
 import { View, Text, TouchableOpacity, StyleSheet, Image } from "react-native";
-import { Link } from "expo-router";
+import { useRouter } from "expo-router";
 
 export default function Home() {
+  const router = useRouter();
+
   return (
     <View style={styles.container}>
       {/* Logo */}
@@ -14,11 +16,14 @@ export default function Home() {
       {/* Title */}
       <Text style={styles.title}>WEAPON WATCH</Text>
 
-      {/* Button */}
-      <TouchableOpacity style={styles.button}>
-        <Link href="/screens/login" style={styles.buttonText}>
-          LOGIN
-        </Link>
+      {/* Login Button */}
+      <TouchableOpacity style={styles.button} onPress={() => router.push("/screens/login")}>
+        <Text style={styles.buttonText}>LOGIN</Text>
+      </TouchableOpacity>
+
+      {/* SignUp Button */}
+      <TouchableOpacity style={styles.button} onPress={() => router.push("/screens/signup")}>
+        <Text style={styles.buttonText}>SIGN UP</Text>
       </TouchableOpacity>
     </View>
   );

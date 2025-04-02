@@ -1,63 +1,39 @@
-import React, { useState } from "react";
-import {
-  View,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  StyleSheet,
-  Alert,
+// SignUpScreen.tsx
+import React, { useState } from 'react';
+import { 
+    View, 
+    TextInput, 
+    Button, 
+    Alert,
+    Text,
+    TouchableOpacity,
+    StyleSheet,
 } from "react-native";
-import { useRouter } from "expo-router";
+import { addUser } from '../../services/firestore';
 import { FontAwesome } from '@expo/vector-icons';
-import { signInWithEmailAndPassword } from 'firebase/auth';
-import { doc, getDoc } from "firebase/firestore";
-import { auth, db } from '../../firebaseConfig';
+import { useRouter } from "expo-router";
 
-export default function LoginScreen() {
+export default function SignUpScreen() {
   const router = useRouter();
-
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [isAdmin, setIsAdmin] = useState(false);
-  const [schoolId, setSchoolId] = useState("");
+  const [schoolId, setSchoolId] = useState('');
 
-  const handleLogin = async () => {
-    if (!email || !password) {
-      alert("Please fill in all fields.");
-      return;
-    }
+  const handleSignUp = async () => {
     try {
-      await signInWithEmailAndPassword(auth, email, password);
-      Alert.alert('Login Successful!', 'Welcome back!');
-      // Get the current user's UID
-      const uid = auth.currentUser?.uid;
-      if (!uid) throw new Error("User not found");
-
-      // Fetch the user's document from Firestore
-      const userDocRef = doc(db, "users", uid);
-      const userDocSnap = await getDoc(userDocRef);
-
-      if (!userDocSnap.exists()) {
-        throw new Error("User data not found in Firestore");
-      }
-
-      const userData = userDocSnap.data();
-      // Check the isAdmin field to route appropriately
-      if (userData.isAdmin) {
-        router.push("/screens/cameras");
-      } else {
-        router.push("/screens/student_notifications");
-      }
-
-
+      await addUser(name, email, password, isAdmin, schoolId);
+      Alert.alert('Sign Up Successful!', 'Your account has been created.');
+      router.push("/screens/login");
     } catch (error: any) {
-      Alert.alert('Login Error', error.message);
+      Alert.alert('Sign Up Error', error.message);
     }
   };
 
-  const handleGoogleLogin = () => {
-    alert("Google Login Clicked! (integrate Firebase Auth here)");
+  const handleGoogleSignup = () => {
+    // Implement Google sign-up here.
+    Alert.alert("Google Sign Up", "Implement Google sign-up here");
   };
 
   return (
@@ -70,14 +46,30 @@ export default function LoginScreen() {
 
       <View style={styles.card}>
         <View style={styles.header}>
-          <Text style={styles.title}>Welcome Back</Text>
-          <Text style={styles.description}>Login to continue</Text>
+          <Text style={styles.title}>Create Account</Text>
+          <Text style={styles.description}>Sign up to continue</Text>
         </View>
 
-        {/* Google Login Button */}
-        <TouchableOpacity style={[styles.button, styles.outlineButton]} onPress={handleGoogleLogin}>
+        {/* Role Selection */}
+        <View style={styles.roleContainer}>
+            <TouchableOpacity
+                style={[styles.roleButton, isAdmin && styles.selectedRole]}
+                onPress={() => setIsAdmin(true)}
+            >
+                <Text style={styles.roleText}>Admin/Police</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+                style={[styles.roleButton, !isAdmin && styles.selectedRole]}
+                onPress={() => setIsAdmin(false)}
+            >
+                <Text style={styles.roleText}>Student/Faculty</Text>
+            </TouchableOpacity>
+        </View>
+
+        {/* Google Sign Up Button */}
+        <TouchableOpacity style={[styles.button, styles.outlineButton]} onPress={handleGoogleSignup}>
           <Text style={styles.socialButtonText}>
-            <FontAwesome name="google" style={styles.icon} /> Login with Google
+            <FontAwesome name="google" style={styles.icon} /> Sign Up with Google
           </Text>
         </TouchableOpacity>
 
@@ -87,43 +79,67 @@ export default function LoginScreen() {
           <View style={styles.divider} />
         </View>
 
-        {/* Email & Password Fields */}
+        {/* Name Field */}
+        <Text style={styles.label}>Name</Text>
+        <TextInput
+          style={styles.input}
+          placeholder="Enter your name"
+          placeholderTextColor="#aaa"
+          value={name}
+          onChangeText={setName}
+        />
+
+        {/* Email Field */}
         <Text style={styles.label}>Email</Text>
         <TextInput
           style={styles.input}
           placeholder="Enter your email"
+          placeholderTextColor="#aaa"
           value={email}
           onChangeText={setEmail}
-          placeholderTextColor="#aaa"
+          keyboardType="email-address"
         />
 
-        <View style={styles.inlineContainer}>
-          <Text style={styles.label}>Password</Text>
-          <TouchableOpacity>
-            <Text style={styles.link}>Forgot your password?</Text>
-          </TouchableOpacity>
-        </View>
+        {/* Password Field */}
+        <Text style={styles.label}>Password</Text>
         <TextInput
           style={styles.input}
           placeholder="Enter your password"
           secureTextEntry
+          placeholderTextColor="#aaa"
           value={password}
           onChangeText={setPassword}
-          placeholderTextColor="#aaa"
         />
 
-        {/* Login Button */}
-        <TouchableOpacity style={[styles.button, styles.primaryButton]} onPress={handleLogin}>
-          <Text style={styles.loginButtonText}>Login</Text>
+        {/* Optional School ID Field */}
+        <Text style={styles.label}>School ID (Optional)</Text>
+        <TextInput
+          style={styles.input}
+          placeholder="Enter your School ID"
+          placeholderTextColor="#aaa"
+          value={schoolId}
+          onChangeText={setSchoolId}
+        />
+
+        {/* Sign Up Button */}
+        <TouchableOpacity style={[styles.button, styles.primaryButton]} onPress={handleSignUp}>
+          <Text style={styles.loginButtonText}>Sign Up</Text>
         </TouchableOpacity>
 
         <View style={styles.footer}>
-          <Text style={styles.footerText}>Don’t have an account?{" "}
-            <Text style={styles.link} onPress={() => router.push("/screens/signup")}>Sign up</Text>
+          <Text style={styles.footerText}>
+            Already have an account?{" "}
+            <Text style={styles.link} onPress={() => router.push("/screens/login")}>
+              Login
+            </Text>
           </Text>
         </View>
       </View>
 
+      <Text style={styles.terms}>
+        By clicking sign up, you agree to our <Text style={styles.link}>Terms of Service</Text> and{" "}
+        <Text style={styles.link}>Privacy Policy</Text>.
+      </Text>
     </View>
   );
 }
@@ -161,5 +177,4 @@ const styles = StyleSheet.create({
   footer: { marginTop: 20, alignItems: "center" },
   footerText: { fontSize: 14, color: "#bbb" },
   terms: { textAlign: "center", marginTop: 20, fontSize: 12, color: "#666" },
-  inlineContainer: { flexDirection: "row", justifyContent: "space-between", alignItems: "center" },
 });
