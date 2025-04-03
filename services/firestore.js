@@ -2,15 +2,15 @@ import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
 import { auth, db } from "../firebaseConfig";
 import { doc, setDoc, updateDoc } from "firebase/firestore";
 
+
 /**
- * Creates a new user with email and password, updates their profile,
- * and stores additional user data in Firestore.
+ * Creates a new user with email and password, updates their profile, and stores additional user data in Firestore.
  *
- * @param {string} name - The user's display name.
- * @param {string} email - The user's email address.
- * @param {string} password - The user's chosen password.
- * @param {string} role - The user's role (admin, teachers, police).
- * @param {string} schoolId - The associated school Id.
+ * @param {string} name - The name of the user.
+ * @param {string} email - The email of the user.
+ * @param {string} password - The password for the user.
+ * @param {boolean} isAdmin - Whether the user is an admin or not.
+ * @param {string} schoolId - The ID of the school associated with the user.
  * @returns {Promise<void>}
  */
 export const addUser = async (name, email, password, isAdmin, schoolId) => {
@@ -26,7 +26,7 @@ export const addUser = async (name, email, password, isAdmin, schoolId) => {
     await setDoc(doc(db, "users", user.uid), {
       name,
       email,
-      isAdmin,
+      isAdmin: false,
       schoolId,
       createdAt: new Date()
     });
@@ -40,8 +40,10 @@ export const addUser = async (name, email, password, isAdmin, schoolId) => {
 
 /**
  * Updates an existing user's data in Firestore.
- * @param {string} userId - The Firebase Auth user ID.
- * @param {object} data - An object containing the fields to update.
+ *
+ * @param {string} userId - The ID of the user to update.
+ * @param {Object} data - The data to update (e.g., name, email, isAdmin).
+ * @returns {Promise<void>}
  */
 export const updateUser = async (userId, data) => {
   try {
@@ -51,5 +53,22 @@ export const updateUser = async (userId, data) => {
   } catch (error) {
     console.error("Error updating user:", error);
     throw error;
+  }
+};
+
+/**
+ * Retrieves user data from Firestore for the given UID.
+ *
+ * @param {string} uid - The user's UID.
+ * @returns {Promise<Object>} - A promise that resolves to the user data object.
+ * @throws Will throw an error if the document does not exist.
+ */
+export const getUser = async (uid) => {
+  const userDocRef = doc(db, "users", uid);
+  const userDocSnap = await getDoc(userDocRef);
+  if (userDocSnap.exists()) {
+    return userDocSnap.data();
+  } else {
+    throw new Error("User data not found in Firestore.");
   }
 };

@@ -12,6 +12,7 @@ import { FontAwesome } from "@expo/vector-icons";
 import { auth, db } from '../../firebaseConfig';
 import { updateProfile, updateEmail, updatePassword  } from 'firebase/auth';
 import { doc, getDoc, updateDoc } from 'firebase/firestore';
+import { getUser } from '../../services/firestore';
 
 export default function Settings() {
   const router = useRouter();
@@ -30,21 +31,21 @@ export default function Settings() {
       setName(user.displayName || "");
       setEmail(user.email || "");
 
-      // Fetch additional details (schoolID and role) from Firestore
       const fetchUserData = async () => {
         try {
-          const userDocRef = doc(db, "users", user.uid);
-          const userDoc = await getDoc(userDocRef);
-          if (userDoc.exists()) {
-            const data = userDoc.data();
-            setSchoolId(data.schoolId || "");
-            setRole(data.role || "");
+          const uid = auth.currentUser?.uid;
+          if (!uid) throw new Error("User not found");
+          const userData = (await getUser(uid)) as { isAdmin: boolean; schoolId?: string };
+          setSchoolId(userData.schoolId || "");
+          if (userData.isAdmin) {
+            setRole("Admin");
+          } else {
+            setRole("Student/Faculty");
           }
         } catch (error: any) {
           console.error("Error fetching user data:", error);
         }
       };
-
       fetchUserData();
     }
   }, [user]);
@@ -81,19 +82,11 @@ export default function Settings() {
 
   const handleBack = async () => {
     try {
-      // Get the current user's UID
+      // Get the current user's data
       const uid = auth.currentUser?.uid;
       if (!uid) throw new Error("User not found");
+      const userData = await getUser(uid) as { isAdmin: boolean };
 
-      // Fetch the user's document from Firestore
-      const userDocRef = doc(db, "users", uid);
-      const userDocSnap = await getDoc(userDocRef);
-
-      if (!userDocSnap.exists()) {
-        throw new Error("User data not found in Firestore");
-      }
-
-      const userData = userDocSnap.data();
       // Check the isAdmin field to route appropriately
       if (userData.isAdmin) {
         router.push("/screens/cameras");
@@ -117,8 +110,7 @@ export default function Settings() {
 
       <Text style={styles.title}>SETTINGS</Text>
 
-      <Text style={styles.label}>School ID:</Text>
-      <Text style={styles.readOnly}>{schoolId}</Text>
+      <Text style={styles.label}>School ID:</Text><Text style={styles.readOnly}>{schoolId}</Text>
 
       <Text style={styles.label}>Role:</Text>
       <Text style={styles.readOnly}>{role}</Text>
@@ -155,11 +147,6 @@ export default function Settings() {
       <TouchableOpacity style={styles.button} onPress={handleSaveChanges}>
         <Text style={styles.buttonText}>Save Changes</Text>
       </TouchableOpacity>
-
-      {/* Help and Support Button 
-      <TouchableOpacity style={styles.button}>
-        <Text style={styles.buttonText}>Help & Support</Text>
-      </TouchableOpacity> */}
 
       {/* Logout Button */}
       <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>

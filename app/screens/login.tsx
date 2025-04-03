@@ -12,14 +12,13 @@ import { FontAwesome } from '@expo/vector-icons';
 import { signInWithEmailAndPassword } from 'firebase/auth';
 import { doc, getDoc } from "firebase/firestore";
 import { auth, db } from '../../firebaseConfig';
+import { getUser } from '../../services/firestore';
 
 export default function LoginScreen() {
   const router = useRouter();
 
-  const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [isAdmin, setIsAdmin] = useState(false);
   const [schoolId, setSchoolId] = useState("");
 
   const handleLogin = async () => {
@@ -30,19 +29,12 @@ export default function LoginScreen() {
     try {
       await signInWithEmailAndPassword(auth, email, password);
       Alert.alert('Login Successful!', 'Welcome back!');
-      // Get the current user's UID
+      
+      // Get the current user's data
       const uid = auth.currentUser?.uid;
       if (!uid) throw new Error("User not found");
+      const userData = await getUser(uid) as { isAdmin: boolean };
 
-      // Fetch the user's document from Firestore
-      const userDocRef = doc(db, "users", uid);
-      const userDocSnap = await getDoc(userDocRef);
-
-      if (!userDocSnap.exists()) {
-        throw new Error("User data not found in Firestore");
-      }
-
-      const userData = userDocSnap.data();
       // Check the isAdmin field to route appropriately
       if (userData.isAdmin) {
         router.push("/screens/cameras");
