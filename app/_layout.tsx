@@ -21,7 +21,7 @@ export default function RootLayout() {
   const isActive = (path: string) => pathname === path;
 
   // Hide the bottom navigation bar on the home, login, and landing page
-  const shouldShowNavBar = !["/", "/screens/login", "/screens/home", "/screens/student_notifications", "/screens/student_settings"].includes(pathname);
+  const shouldShowNavBar = !["/", "/screens/settings", "/screens/login", "/screens/signup", "/screens/home", "/screens/student_notifications", "/screens/student_settings"].includes(pathname);
 
   return (
     <NotificationProvider>

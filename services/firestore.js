@@ -1,50 +1,74 @@
-import { db } from "../firebaseConfig";
-import { doc, setDoc, collection, addDoc } from "firebase/firestore";
+import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
+import { auth, db } from "../firebaseConfig";
+import { doc, setDoc, updateDoc } from "firebase/firestore";
+
 
 /**
- * Add a school to Firestore.
+ * Creates a new user with email and password, updates their profile, and stores additional user data in Firestore.
+ *
+ * @param {string} name - The name of the user.
+ * @param {string} email - The email of the user.
+ * @param {string} password - The password for the user.
+ * @param {boolean} isAdmin - Whether the user is an admin or not.
+ * @param {string} schoolId - The ID of the school associated with the user.
+ * @returns {Promise<void>}
  */
-export const addSchool = async (schoolID, name, location, adminID) => {
+export const addUser = async (name, email, password, isAdmin, schoolId) => {
   try {
-    await setDoc(doc(db, "schools", schoolID), {
+    // Create the user with email and password
+    const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+    const user = userCredential.user;
+    
+    // Update the user's display name in Firebase Auth
+    await updateProfile(user, { displayName: name });
+    
+    // Store additional user data in Firestore under a "users" collection
+    await setDoc(doc(db, "users", user.uid), {
       name,
-      location,
-      adminID,
+      email,
+      isAdmin: false,
+      schoolId,
+      createdAt: new Date()
     });
-    console.log("School added:", name);
+    
+    console.log("User successfully added:", user.uid);
   } catch (error) {
-    console.error("Error adding school:", error);
+    console.error("Error adding user:", error);
+    throw error;
   }
 };
 
 /**
- * Add a camera to a school.
+ * Updates an existing user's data in Firestore.
+ *
+ * @param {string} userId - The ID of the user to update.
+ * @param {Object} data - The data to update (e.g., name, email, isAdmin).
+ * @returns {Promise<void>}
  */
-export const addCamera = async (schoolID, camID, name, status, rtsp_url) => {
+export const updateUser = async (userId, data) => {
   try {
-    await setDoc(doc(db, "schools", schoolID, "cameras", camID), {
-      name,
-      status,
-      rtsp_url,
-    });
-    console.log("Camera added:", name);
+    // Update the user document in Firestore
+    await updateDoc(doc(db, 'users', userId), data);
+    console.log("User successfully updated:", userId);
   } catch (error) {
-    console.error("Error adding camera:", error);
+    console.error("Error updating user:", error);
+    throw error;
   }
 };
 
 /**
- * Add a notification to a school.
+ * Retrieves user data from Firestore for the given UID.
+ *
+ * @param {string} uid - The user's UID.
+ * @returns {Promise<Object>} - A promise that resolves to the user data object.
+ * @throws Will throw an error if the document does not exist.
  */
-export const addNotification = async (schoolID, type, message) => {
-  try {
-    await addDoc(collection(db, "schools", schoolID, "notifications"), {
-      type,
-      message,
-      timestamp: new Date(),
-    });
-    console.log("Notification sent:", type);
-  } catch (error) {
-    console.error("Error sending notification:", error);
+export const getUser = async (uid) => {
+  const userDocRef = doc(db, "users", uid);
+  const userDocSnap = await getDoc(userDocRef);
+  if (userDocSnap.exists()) {
+    return userDocSnap.data();
+  } else {
+    throw new Error("User data not found in Firestore.");
   }
 };

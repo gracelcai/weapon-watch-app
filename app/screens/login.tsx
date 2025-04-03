@@ -5,26 +5,46 @@ import {
   TextInput,
   TouchableOpacity,
   StyleSheet,
+  Alert,
 } from "react-native";
 import { useRouter } from "expo-router";
 import { FontAwesome } from '@expo/vector-icons';
+import { signInWithEmailAndPassword } from 'firebase/auth';
+import { doc, getDoc } from "firebase/firestore";
+import { auth, db } from '../../firebaseConfig';
+import { getUser } from '../../services/firestore';
 
 export default function LoginScreen() {
   const router = useRouter();
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [role, setRole] = useState<"admin" | "student" | null>(null);
+  const [schoolId, setSchoolId] = useState("");
 
-  const handleLogin = () => {
-    if (!role) {
-      alert("Please select a role before logging in.");
+  const handleLogin = async () => {
+    if (!email || !password) {
+      alert("Please fill in all fields.");
       return;
     }
+    try {
+      await signInWithEmailAndPassword(auth, email, password);
+      Alert.alert('Login Successful!', 'Welcome back!');
+      
+      // Get the current user's data
+      const uid = auth.currentUser?.uid;
+      if (!uid) throw new Error("User not found");
+      const userData = await getUser(uid) as { isAdmin: boolean };
 
-    if (role === "admin") {
-      router.push("/screens/cameras");
-    } else {
-      router.push("/screens/student_notifications");
+      // Check the isAdmin field to route appropriately
+      if (userData.isAdmin) {
+        router.push("/screens/cameras");
+      } else {
+        router.push("/screens/student_notifications");
+      }
+
+
+    } catch (error: any) {
+      Alert.alert('Login Error', error.message);
     }
   };
 
@@ -43,23 +63,7 @@ export default function LoginScreen() {
       <View style={styles.card}>
         <View style={styles.header}>
           <Text style={styles.title}>Welcome Back</Text>
-          <Text style={styles.description}>Login with your Google account</Text>
-        </View>
-
-        {/* Role Selection */}
-        <View style={styles.roleContainer}>
-          <TouchableOpacity
-            style={[styles.roleButton, role === "admin" && styles.selectedRole]}
-            onPress={() => setRole("admin")}
-          >
-            <Text style={styles.roleText}>Admin/Police</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[styles.roleButton, role === "student" && styles.selectedRole]}
-            onPress={() => setRole("student")}
-          >
-            <Text style={styles.roleText}>Student/Faculty</Text>
-          </TouchableOpacity>
+          <Text style={styles.description}>Login to continue</Text>
         </View>
 
         {/* Google Login Button */}
@@ -106,16 +110,12 @@ export default function LoginScreen() {
         </TouchableOpacity>
 
         <View style={styles.footer}>
-          <Text style={styles.footerText}>
-            Don’t have an account? <Text style={styles.link}>Sign up</Text>
+          <Text style={styles.footerText}>Don’t have an account?{" "}
+            <Text style={styles.link} onPress={() => router.push("/screens/signup")}>Sign up</Text>
           </Text>
         </View>
       </View>
 
-      <Text style={styles.terms}>
-        By clicking continue, you agree to our <Text style={styles.link}>Terms of Service</Text> and{" "}
-        <Text style={styles.link}>Privacy Policy</Text>.
-      </Text>
     </View>
   );
 }
