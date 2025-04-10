@@ -12,6 +12,7 @@ import {
 import { addUser } from '../../services/firestore';
 import { FontAwesome } from '@expo/vector-icons';
 import { useRouter } from "expo-router";
+import { useNotification } from '@/context/NotificationContext';
 
 export default function SignUpScreen() {
   const router = useRouter();
@@ -20,10 +21,13 @@ export default function SignUpScreen() {
   const [password, setPassword] = useState('');
   const [isAdmin, setIsAdmin] = useState(false);
   const [schoolId, setSchoolId] = useState('');
-
+  const {notification, expoPushToken, error } = useNotification();
+  if (error){
+    return <Text>Error: {error.message}</Text>
+  }
   const handleSignUp = async () => {
     try {
-      await addUser(name, email, password, isAdmin, schoolId);
+      await addUser(name, email, password, isAdmin, schoolId, expoPushToken);
       Alert.alert('Sign Up Successful!', 'Your account has been created.');
       router.push("/screens/login");
     } catch (error: any) {

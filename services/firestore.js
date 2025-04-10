@@ -11,9 +11,10 @@ import { doc, setDoc, updateDoc } from "firebase/firestore";
  * @param {string} password - The password for the user.
  * @param {boolean} isAdmin - Whether the user is an admin or not.
  * @param {string} schoolId - The ID of the school associated with the user.
+ * @param {string | null} expoPushToken - Token to send user notifications
  * @returns {Promise<void>}
  */
-export const addUser = async (name, email, password, isAdmin, schoolId) => {
+export const addUser = async (name, email, password, isAdmin, schoolId, expoPushToken) => {
   try {
     // Create the user with email and password
     const userCredential = await createUserWithEmailAndPassword(auth, email, password);
@@ -28,6 +29,7 @@ export const addUser = async (name, email, password, isAdmin, schoolId) => {
       email,
       isAdmin: false,
       schoolId,
+      expoPushToken,
       createdAt: new Date()
     });
     

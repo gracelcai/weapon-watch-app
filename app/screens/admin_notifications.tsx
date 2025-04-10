@@ -1,9 +1,14 @@
 import React from "react";
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView } from "react-native";
 import { useRouter } from "expo-router";
+import { useNotification } from '@/context/NotificationContext';
 
 export default function AdminNotifications() {
   const router = useRouter();
+  const {notification, expoPushToken, error } = useNotification();
+  if (error){
+    return <Text>Error: {error.message}</Text>
+  }
 
   return (
     <View style={styles.container}>
