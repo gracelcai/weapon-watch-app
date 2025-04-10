@@ -6,7 +6,7 @@ export default function TrackingPage() {
   return (
     <View style={styles.container}>
       <Text style={styles.title}>LIVE TRACKING</Text>
-
+{/* 
       {Platform.OS !== "web" ? (
         <MapView
           style={styles.map}
@@ -24,7 +24,7 @@ export default function TrackingPage() {
         <View style={styles.mapPlaceholder}>
           <Text style={styles.mapText}>Map Not Available on Web</Text>
         </View>
-      )}
+      )} */}
 
       <Text style={styles.title}>ACTIVE CAMERAS 🔴</Text>
 
