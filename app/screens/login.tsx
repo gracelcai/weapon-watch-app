@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -7,12 +7,13 @@ import {
   StyleSheet,
   Alert,
 } from "react-native";
+import * as Google from 'expo-auth-session/providers/google';
 import { useRouter } from "expo-router";
 import { FontAwesome } from '@expo/vector-icons';
 import { signInWithEmailAndPassword } from 'firebase/auth';
 import { doc, getDoc } from "firebase/firestore";
 import { auth, db } from '../../firebaseConfig';
-import { getUser } from '../../services/firestore';
+import { getUser, signInWithGoogle } from '../../services/firestore';
 
 export default function LoginScreen() {
   const router = useRouter();
@@ -20,6 +21,41 @@ export default function LoginScreen() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [schoolId, setSchoolId] = useState("");
+
+  // Set up Google authentication request with client IDs.
+  const [request, response, promptAsync] = Google.useAuthRequest({
+    //expoClientId: "YOUR_EXPO_CLIENT_ID",
+    iosClientId: "YOUR_IOS_CLIENT_ID",
+    androidClientId: "YOUR_ANDROID_CLIENT_ID",
+    webClientId: "YOUR_WEB_CLIENT_ID",
+  });
+
+  // Handle Google auth response
+  useEffect(() => {
+    if (response?.type === "success") {
+      const handleGoogleAuth = async () => {
+        try {
+          const { id_token } = response.params;
+          await signInWithGoogle(id_token);
+          Alert.alert("Login Successful!", "Welcome back!");
+  
+          const uid = auth.currentUser?.uid;
+          if (!uid) throw new Error("User not found");
+  
+          const userData = await getUser(uid) as { isAdmin: boolean };
+          if (userData.isAdmin) {
+            router.push("/screens/cameras");
+          } else {
+            router.push("/screens/student_notifications");
+          }
+        } catch (error: any) {
+          Alert.alert("Authentication Error", error.message);
+        }
+      };
+  
+      handleGoogleAuth();
+    }
+  }, [response]);
 
   const handleLogin = async () => {
     if (!email || !password) {
@@ -49,7 +85,7 @@ export default function LoginScreen() {
   };
 
   const handleGoogleLogin = () => {
-    alert("Google Login Clicked! (integrate Firebase Auth here)");
+    promptAsync();
   };
 
   return (

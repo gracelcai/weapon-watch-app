@@ -1,6 +1,7 @@
 import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
 import { auth, db } from "../firebaseConfig";
-import { doc, setDoc, updateDoc } from "firebase/firestore";
+import { doc, setDoc, updateDoc, getDoc } from "firebase/firestore";
+import { signInWithCredential, GoogleAuthProvider } from "firebase/auth";
 
 
 /**
@@ -72,5 +73,20 @@ export const getUser = async (uid) => {
     return userDocSnap.data();
   } else {
     throw new Error("User data not found in Firestore.");
+  }
+};
+
+/**
+ * Signs in a user using a Google ID token.
+ *
+ * @param {string} idToken - The Google ID token obtained from your Google auth flow.
+ * @returns {Promise<import("firebase/auth").UserCredential>} A promise that resolves with the Firebase user credential.
+ */
+export const signInWithGoogle = async (idToken) => {
+  try {
+    const credential = GoogleAuthProvider.credential(idToken);
+    return await signInWithCredential(auth, credential);
+  } catch (error) {
+    throw error;
   }
 };
