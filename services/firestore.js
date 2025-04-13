@@ -2,6 +2,7 @@ import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
 import { auth, db } from "../firebaseConfig";
 import { doc, setDoc, updateDoc, getDoc } from "firebase/firestore";
 import { signInWithCredential, GoogleAuthProvider } from "firebase/auth";
+import { collection, query, where, getDocs } from "firebase/firestore";
 
 
 /**
@@ -11,11 +12,12 @@ import { signInWithCredential, GoogleAuthProvider } from "firebase/auth";
  * @param {string} email - The email of the user.
  * @param {string} password - The password for the user.
  * @param {boolean} isAdmin - Whether the user is an admin or not.
+ * @param {boolean} isVerifier - Whether the user is a verifier or not.
  * @param {string} schoolId - The ID of the school associated with the user.
  * @param {string | null} expoPushToken - Token to send user notifications
  * @returns {Promise<void>}
  */
-export const addUser = async (name, email, password, isAdmin, schoolId, expoPushToken) => {
+export const addUser = async (name, email, password, isAdmin, isVerifier, schoolId, expoPushToken) => {
   try {
     // Create the user with email and password
     const userCredential = await createUserWithEmailAndPassword(auth, email, password);
@@ -29,8 +31,8 @@ export const addUser = async (name, email, password, isAdmin, schoolId, expoPush
       name,
       email,
       isAdmin: false,
+      isVerifier: false,
       schoolId,
-      expoPushToken,
       createdAt: new Date()
     });
     
@@ -89,4 +91,30 @@ export const signInWithGoogle = async (idToken) => {
   } catch (error) {
     throw error;
   }
+};
+
+/**
+ * Retrieves a user document from Firestore by email address.
+ *
+ * @param {string} email - The email address to look for.
+ * @returns {Promise<Object|null>} Resolves to an object containing the uid and the document data if found, or null if not found.
+ */
+export const getUserByEmail = async (email) => {
+  // Create a reference to the "users" collection.
+  const usersRef = collection(db, "users");
+  
+  // Create a query where the "email" field equals the provided email.
+  const q = query(usersRef, where("email", "==", email));
+  
+  // Execute the query.
+  const querySnapshot = await getDocs(q);
+  
+  // If no documents match, return null.
+  if (querySnapshot.empty) {
+    return null;
+  }
+  
+  // Assume email is unique; return the first matching document.
+  const docSnapshot = querySnapshot.docs[0];
+  return { uid: docSnapshot.id, ...docSnapshot.data() };
 };

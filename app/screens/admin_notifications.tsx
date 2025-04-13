@@ -88,7 +88,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   notificationList: {
-    paddingBottom: 80, // Extra space for the create button
+    paddingBottom: 20, // Extra space for the create button
   },
   notificationItem: {
     backgroundColor: "#333",

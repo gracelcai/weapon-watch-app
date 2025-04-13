@@ -50,12 +50,7 @@
     "react-native-vector-icons": "^10.2.0",
     "react-native-video": "^6.10.0",
     "react-native-web": "~0.19.13",
-<<<<<<< Updated upstream
     "react-native-webview": "13.12.2"
-=======
-    "react-native-webview": "13.12.2",
-    "undefined": "expo-auth-session/providers/google"
->>>>>>> Stashed changes
   },
   "devDependencies": {
     "@babel/core": "^7.25.2",

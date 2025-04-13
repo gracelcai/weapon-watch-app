@@ -13,13 +13,10 @@ import * as Google from "expo-auth-session/providers/google";
 import { addUser } from '../../services/firestore';
 import { FontAwesome } from '@expo/vector-icons';
 import { useRouter } from "expo-router";
-<<<<<<< Updated upstream
 import { useNotification } from '@/context/NotificationContext';
-=======
 import { signInWithGoogle, getUser } from "../../services/firestore";
 import { auth, db } from "../../firebaseConfig";
 import { doc, setDoc } from "firebase/firestore";
->>>>>>> Stashed changes
 
 export default function SignUpScreen() {
   const router = useRouter();
@@ -27,13 +24,12 @@ export default function SignUpScreen() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isAdmin, setIsAdmin] = useState(false);
+  const [isVerifier, setIsVerifier] = useState(false);
   const [schoolId, setSchoolId] = useState('');
-<<<<<<< Updated upstream
   const {notification, expoPushToken, error } = useNotification();
   if (error){
     return <Text>Error: {error.message}</Text>
   }
-=======
 
   // Set up the Google authentication request.
   const [request, response, promptAsync] = Google.useAuthRequest({
@@ -87,10 +83,10 @@ export default function SignUpScreen() {
     }
   }, [response]);
 
->>>>>>> Stashed changes
+
   const handleSignUp = async () => {
     try {
-      await addUser(name, email, password, isAdmin, schoolId, expoPushToken);
+      await addUser(name, email, password, isAdmin, isVerifier, schoolId, expoPushToken);
       Alert.alert('Sign Up Successful!', 'Your account has been created.');
       router.push("/screens/login");
     } catch (error: any) {

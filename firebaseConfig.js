@@ -8,18 +8,18 @@ const {
 	FIREBASE_MESSAGING_SENDER_ID,
 	FIREBASE_APP_ID,
 	FIREBASE_MEASUREMENT_ID,
-} = Constants.expoConfig?.extra || {};
+} = Constants.expoConfig?.extra || {}; 
 
 // Import the functions you need from the SDKs you need
 // https://firebase.google.com/docs/web/setup#available-libraries
+
 import { initializeApp } from "firebase/app";
 import { getAnalytics, isSupported } from "firebase/analytics";
 import { getFirestore } from "firebase/firestore";
-//import { initializeAuth, getReactNativePersistence } from "@firebase/auth";
+import { initializeAuth, getReactNativePersistence } from "firebase/auth";
 //Had to change it to this for it to work on android. Change it back if it doesn't work on ios
-import { initializeAuth } from "@firebase/auth";
-import { getReactNativePersistence } from '@firebase/auth/dist/rn/index.js';
-import { getReactNativePersistence } from '@firebase/auth/dist/rn/index.js';
+// import { initializeAuth } from "@firebase/auth";
+// import { getReactNativePersistence } from '@firebase/auth/dist/rn/index.js';
 import ReactNativeAsyncStorage from "@react-native-async-storage/async-storage";
 
 // Your web app's Firebase configuration
@@ -37,7 +37,11 @@ const firebaseConfig = {
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
 
-// Initialize services
+// Initialize Firestore
+const db = getFirestore(app);
+
+// Initialize Auth
+
 const auth = initializeAuth(app, {
 	persistence: getReactNativePersistence(ReactNativeAsyncStorage),
 });
@@ -47,6 +51,6 @@ isSupported().then((supported) => {
 		// use analytics as needed
 	}
 });
-const db = getFirestore(app);
+
 
 export { auth, db };

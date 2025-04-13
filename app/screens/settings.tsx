@@ -35,10 +35,12 @@ export default function Settings() {
         try {
           const uid = auth.currentUser?.uid;
           if (!uid) throw new Error("User not found");
-          const userData = (await getUser(uid)) as { isAdmin: boolean; schoolId?: string };
+          const userData = (await getUser(uid)) as { isAdmin: boolean; isVerifier: boolean; schoolId?: string };
           setSchoolId(userData.schoolId || "");
           if (userData.isAdmin) {
             setRole("Admin");
+          } else if (userData.isVerifier) {
+              setRole("Admin & Verifier");
           } else {
             setRole("Student/Faculty");
           }

@@ -66,7 +66,7 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#000", padding: 16, paddingTop: 65},
   title: { color: "#fff", fontSize: 24, fontWeight: "bold", textAlign: "center", marginBottom: 16 },
   
-  searchContainer: { backgroundColor: "#222", borderRadius: 10, padding: 10, marginBottom: 12 },
+  searchContainer: { backgroundColor: "#222", borderRadius: 10, padding: 10, marginBottom: 20 },
   searchInput: { color: "#fff", fontSize: 16 },
   
   notificationList: { paddingBottom: 80 },
