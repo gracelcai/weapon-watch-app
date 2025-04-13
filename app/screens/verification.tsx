@@ -59,6 +59,7 @@ export default function VerificationScreen() {
 
   return (
     <View style={styles.container}>
+      <Text style={styles.title2}>VERIFICATION</Text>
       <Text style={styles.title}>Potential threat detected</Text>
 
       {/* Threat Image */}
@@ -82,9 +83,10 @@ export default function VerificationScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#000", justifyContent: "center", alignItems: "center", padding: 20 },
+  container: { flex: 1, backgroundColor: "#000", justifyContent: "center", alignItems: "center", padding: 16,paddingTop: 60,},
   loadingContainer: { flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: "#000" },
   title: { color: "#fff", fontSize: 20, fontWeight: "bold", marginBottom: 20 },
+  title2: { color: "#fff", fontSize: 24, fontWeight: "bold", textAlign: "center", marginBottom: 10 },
   image: { width: "100%", height: 300, resizeMode: "contain", marginBottom: 30 },
   confirmButton: { backgroundColor: "#D32F2F", padding: 15, width: "100%", alignItems: "center", borderRadius: 10, marginBottom: 10 },
   confirmButtonText: { color: "#fff", fontSize: 16, fontWeight: "bold" },

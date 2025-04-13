@@ -72,7 +72,7 @@ export default function SignUpScreen() {
           if (userData.isAdmin) {
             router.push("/screens/cameras");
           } else {
-            router.push("/screens/student_notifications");
+            router.push("/screens/notifications_student");
           }
         } catch (error: any) {
           Alert.alert("Google Sign-Up Error", error.message);

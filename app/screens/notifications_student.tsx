@@ -65,22 +65,17 @@ export default function StudentNotifications() {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#000", padding: 16, paddingTop: 65},
   title: { color: "#fff", fontSize: 24, fontWeight: "bold", textAlign: "center", marginBottom: 16 },
-  
   searchContainer: { backgroundColor: "#222", borderRadius: 10, padding: 10, marginBottom: 20 },
   searchInput: { color: "#fff", fontSize: 16 },
-  
   notificationList: { paddingBottom: 80 },
-  
   notificationItem: { backgroundColor: "#333", padding: 12, borderRadius: 8, marginBottom: 10 },
   alert: { backgroundColor: "#450000" },
   allClear: { backgroundColor: "#666" },
-
   notificationTitle: { color: "#fff", fontSize: 16, fontWeight: "bold" },
   notificationTitleRed: { color: "#ff4444", fontSize: 16, fontWeight: "bold" },
   notificationTime: { color: "#bbb", fontSize: 12, textAlign: "right" },
   notificationText: { color: "#fff", fontSize: 14, marginVertical: 5 },
   tapToView: { color: "#ff6666", fontSize: 14, textDecorationLine: "underline" },
-  
   dashboardButton: { marginTop: 20, alignSelf: "center", paddingBottom: 20},
   dashboardButtonText: { color: "#fff", fontSize: 16},
 });

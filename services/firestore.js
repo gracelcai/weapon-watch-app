@@ -118,3 +118,57 @@ export const getUserByEmail = async (email) => {
   const docSnapshot = querySnapshot.docs[0];
   return { uid: docSnapshot.id, ...docSnapshot.data() };
 };
+
+/**
+ * Adds or updates a camera document in Firestore with the specified fields.
+ *
+ * @param {string} cameraId - The unique identifier for the camera. (You can generate this from the name and floor.)
+ * @param {Object} cameraData - An object containing camera information.
+ * @param {number} cameraData.floor - The floor on which the camera is located.
+ * @param {string} cameraData.name - A descriptive name for the camera.
+ * @param {string} cameraData.location - More details about the camera's location.
+ * @param {string} cameraData.video_type - The type of video stream, e.g. "rtsp".
+ * @param {string} cameraData.video_link - The RTSP URL.
+ * @param {boolean} [cameraData.isDetected=false] - Whether the camera currently detects activity (default false).
+ * @param {boolean} [cameraData.isConfirmed=false] - Whether any detection has been confirmed (default false).
+ *
+ * @returns {Promise<boolean>} Returns true if the document was added/updated successfully.
+ */
+export const addCamera = async (cameraId, cameraData) => {
+  try {
+    await setDoc(doc(db, "cameras", cameraId), {
+      floor: cameraData.floor,
+      name: cameraData.name,
+      location: cameraData.location,
+      video_type: cameraData.video_type,
+      video_link: cameraData.video_link,
+      isDetected: cameraData.isDetected ?? false,
+      isConfirmed: cameraData.isConfirmed ?? false,
+      createdAt: new Date(),
+    });
+    console.log("Camera successfully added/updated:", cameraId);
+    return true;
+  } catch (error) {
+    console.error("Error adding camera:", error);
+    throw error;
+  }
+};
+
+/**
+ * Fetches all camera documents from the "cameras" collection in Firestore.
+ *
+ * @returns {Promise<Array<Object>>} An array of camera objects including their ID.
+ */
+export const getCameras = async () => {
+  try {
+    const snapshot = await getDocs(collection(db, "cameras"));
+    const camerasArray = snapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data()
+    }));
+    return camerasArray;
+  } catch (error) {
+    console.error("Error fetching cameras:", error);
+    throw error;
+  }
+};

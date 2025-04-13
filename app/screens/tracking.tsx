@@ -7,7 +7,7 @@ export default function TrackingPage() {
     <View style={styles.container}>
       <Text style={styles.title}>LIVE TRACKING</Text>
 
-      {/* {Platform.OS !== "web" ? (
+      {Platform.OS !== "web" ? (
         <MapView
           style={styles.map}
           initialRegion={{
@@ -24,7 +24,7 @@ export default function TrackingPage() {
         <View style={styles.mapPlaceholder}>
           <Text style={styles.mapText}>Map Not Available on Web</Text>
         </View>
-      )} */}
+      )}
 
       <Text style={styles.title}>ACTIVE CAMERAS 🔴</Text>
 
@@ -44,54 +44,13 @@ export default function TrackingPage() {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#000",
-    padding: 16,
-    paddingTop: 55,
-    paddingBottom: 50
-  },
-  title: {
-    color: "#fff",
-    fontSize: 24,
-    fontWeight: "bold",
-    textAlign: "center",
-    marginBottom: 16,
-  },
-  map: {
-    flex: 1,
-    borderRadius: 10,
-    marginBottom: 16,
-  },
-  mapPlaceholder: {
-    flex: 1,
-    backgroundColor: "#222",
-    borderRadius: 10,
-    justifyContent: "center",
-    alignItems: "center",
-    marginBottom: 16,
-  },
-  mapText: {
-    color: "#fff",
-    fontSize: 18,
-  },
-  subTitle: {
-    color: "#fff",
-    fontSize: 20,
-    fontWeight: "bold",
-    marginBottom: 8,
-  },
-  cameraList: {
-    marginBottom: 20,
-  },
-  cameraItem: {
-    backgroundColor: "#333",
-    padding: 12,
-    marginVertical: 6,
-    borderRadius: 8,
-  },
-  cameraText: {
-    color: "#fff",
-    fontSize: 16,
-  },
+  container: {flex: 1,backgroundColor: "#000",padding: 16,paddingTop: 60,paddingBottom: 50},
+  title: {color: "#fff",fontSize: 24,fontWeight: "bold",textAlign: "center",marginBottom: 16},
+  map: {flex: 1,borderRadius: 10,marginBottom: 16},
+  mapPlaceholder: {flex: 1,backgroundColor: "#222",borderRadius: 10,justifyContent: "center",alignItems: "center",marginBottom: 16,},
+  mapText: {color: "#fff",fontSize: 18,},
+  subTitle: {color: "#fff",fontSize: 20,fontWeight: "bold",marginBottom: 8,},
+  cameraList: {marginBottom: 20,},
+  cameraItem: {backgroundColor: "#333",padding: 12,marginVertical: 6,borderRadius: 8,},
+  cameraText: {color: "#fff",fontSize: 16,},
 });

@@ -24,7 +24,7 @@ export default function LoginScreen() {
 
   // Set up Google authentication request with client IDs.
   const [request, response, promptAsync] = Google.useAuthRequest({
-    //expoClientId: "YOUR_EXPO_CLIENT_ID",
+    clientId: "YOUR_EXPO_CLIENT_ID",
     iosClientId: "YOUR_IOS_CLIENT_ID",
     androidClientId: "YOUR_ANDROID_CLIENT_ID",
     webClientId: "YOUR_WEB_CLIENT_ID",
@@ -46,7 +46,7 @@ export default function LoginScreen() {
           if (userData.isAdmin) {
             router.push("/screens/cameras");
           } else {
-            router.push("/screens/student_notifications");
+            router.push("/screens/notifications_student");
           }
         } catch (error: any) {
           Alert.alert("Authentication Error", error.message);
@@ -75,7 +75,7 @@ export default function LoginScreen() {
       if (userData.isAdmin) {
         router.push("/screens/cameras");
       } else {
-        router.push("/screens/student_notifications");
+        router.push("/screens/notifications_student");
       }
 
 
