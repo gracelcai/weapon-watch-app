@@ -14,7 +14,7 @@ export default function CameraSetupScreen() {
   const handleSaveCamera = async () => {
     const video_type = "rtsp";
 
-    if (!floor || !name || !location || !videoLink) {
+    if (!floor || !name || !videoLink) {
       Alert.alert("Error", "Please fill in all required fields.");
       return;
     }
@@ -44,7 +44,6 @@ export default function CameraSetupScreen() {
 
   return (
     <View style={styles.container}>
-      {/* Back Button */}
       <TouchableOpacity style={styles.backButton} onPress={() => router.push("/screens/cameras")}>
         <FontAwesome name="arrow-left" size={20} color="#fff" />
         <Text style={styles.backText}>Back</Text>

@@ -1,14 +1,5 @@
-// SignUpScreen.tsx
 import React, { useState, useEffect } from 'react';
-import { 
-    View, 
-    TextInput, 
-    Button, 
-    Alert,
-    Text,
-    TouchableOpacity,
-    StyleSheet,
-} from "react-native";
+import { View, TextInput, Button, Alert, Text, TouchableOpacity, StyleSheet } from "react-native";
 import * as Google from "expo-auth-session/providers/google";
 import { addUser } from '../../services/firestore';
 import { FontAwesome } from '@expo/vector-icons';
@@ -208,13 +199,7 @@ export default function SignUpScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, padding: 20, justifyContent: "center", backgroundColor: "#000" },
-  backButton: {
-    position: "absolute",
-    top: 50,
-    left: 20,
-    flexDirection: "row",
-    alignItems: "center",
-  },
+  backButton: {position: "absolute",top: 50,left: 20,flexDirection: "row",alignItems: "center",},
   backText: { color: "#fff", fontSize: 16, marginLeft: 5 },
   card: { backgroundColor: "#111", borderRadius: 8, padding: 20, elevation: 3 },
   header: { alignItems: "center", marginBottom: 20 },
