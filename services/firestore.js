@@ -1,6 +1,6 @@
-import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
+import { createUserWithEmailAndPassword, updateProfile, deleteUser, getAuth } from "firebase/auth";
 import { auth, db } from "../firebaseConfig";
-import { doc, setDoc, updateDoc, getDoc } from "firebase/firestore";
+import { doc, setDoc, updateDoc, getDoc, runTransaction, arrayUnion,} from "firebase/firestore";
 import { signInWithCredential, GoogleAuthProvider } from "firebase/auth";
 import { collection, query, where, getDocs } from "firebase/firestore";
 
@@ -19,25 +19,35 @@ import { collection, query, where, getDocs } from "firebase/firestore";
  */
 export const addUser = async (name, email, password, isAdmin, isVerifier, schoolId, expoPushToken) => {
   try {
-    // Create the user with email and password
+    /*
+    const auth = getAuth();
     const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-    const user = userCredential.user;
+    const user = userCredential.user; */
+
+    const { user } = await createUserWithEmailAndPassword(getAuth(), email, password);
     
     // Update the user's display name in Firebase Auth
     await updateProfile(user, { displayName: name });
-    
-    // Store additional user data in Firestore under a "users" collection
-    await setDoc(doc(db, "users", user.uid), {
+
+    /* build the document references right here */
+    const userRef = doc(db, "users", user.uid);
+    const schoolRef = doc(db, "schools", schoolId);
+
+    await setDoc(userRef, {
       name,
       email,
+      schoolId,
       isAdmin: false,
       isVerifier: false,
-      schoolId,
       createdAt: new Date()
     });
+  
+    /* push the ref into the school’s users array */
+    await updateDoc(schoolRef, { users: arrayUnion(userRef) });
     
     console.log("User successfully added:", user.uid);
   } catch (error) {
+    await deleteUser(user).catch(() => {});
     console.error("Error adding user:", error);
     throw error;
   }
@@ -119,10 +129,11 @@ export const getUserByEmail = async (email) => {
   return { uid: docSnapshot.id, ...docSnapshot.data() };
 };
 
+
 /**
  * Adds or updates a camera document in Firestore with the specified fields.
  *
- * @param {string} cameraId - The unique identifier for the camera. (You can generate this from the name and floor.)
+ * @param {string} cameraId - The unique identifier for the camera. (Ggenerate this from the name and floor.)
  * @param {Object} cameraData - An object containing camera information.
  * @param {number} cameraData.floor - The floor on which the camera is located.
  * @param {string} cameraData.name - A descriptive name for the camera.
@@ -146,6 +157,7 @@ export const addCamera = async (cameraId, cameraData) => {
       isConfirmed: cameraData.isConfirmed ?? false,
       createdAt: new Date(),
     });
+
     console.log("Camera successfully added/updated:", cameraId);
     return true;
   } catch (error) {
@@ -153,6 +165,9 @@ export const addCamera = async (cameraId, cameraData) => {
     throw error;
   }
 };
+
+
+
 
 /**
  * Fetches all camera documents from the "cameras" collection in Firestore.
@@ -171,4 +186,39 @@ export const getCameras = async () => {
     console.error("Error fetching cameras:", error);
     throw error;
   }
+};
+
+/**
+ * Fetch all cameras that belong to the signed-in user’s school.
+ * Assumes the user doc has a `schoolId` field (e.g. "UMD").
+ * 
+ * @returns {Promise<Array<Object>>} An array of camera objects including their ID.
+ */
+export const getCamerasSchool = async () => {
+  const uid = auth.currentUser?.uid;
+  if (!uid) throw new Error("User not signed in");
+
+  // read the user profile to discover their schoolId
+  const userData = await getUser(uid);
+  const schoolId = userData.schoolId;
+  if (!schoolId) throw new Error("No schoolId on user profile");
+
+  // query schools/{schoolId}/cameras
+  const camsSnap = await getDocs(
+    collection(db, "schools", schoolId, "cameras")
+  );
+
+  // return plain JS objects (include the doc id)
+  return camsSnap.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+};
+
+/**
+ * Checks if a school exists in Firestore.
+ * 
+ * @param {string} schoolId - The ID of the school to check.
+ * @returns {Promise<boolean>} - Returns true if the school exists, false otherwise.
+ */
+export const schoolExists = async (schoolId) => {
+  const snap = await getDoc(doc(db, "schools", schoolId));
+  return snap.exists();
 };

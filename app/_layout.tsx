@@ -27,7 +27,8 @@ export default function RootLayout() {
     // Navigate to the home page (adjust the path if needed)
     router.push("/screens/home");
   }, []);
-
+  
+  /*
   useEffect(() => {
     const fetchUser = async () => {
       const uid = auth.currentUser?.uid;
@@ -40,7 +41,7 @@ export default function RootLayout() {
         }
       }
     }; fetchUser();
-  }, []);
+  }, []); */
 
   // true only if userData exists and isVerifier is true
   const isVerifier = userData?.isVerifier;

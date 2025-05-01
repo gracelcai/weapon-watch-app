@@ -3,7 +3,8 @@ import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
 import { VLCPlayer } from "react-native-vlc-media-player";
 import { Picker } from "@react-native-picker/picker";
 import { useRouter } from "expo-router";
-import { getCameras } from "../../services/firestore";
+import { getCameras, getCamerasSchool, getUser } from "../../services/firestore";
+import { auth, db } from "../../firebaseConfig";
 
 // CameraFeed component: shows the live feed given an RTSP URL.
 function CameraFeed({ rtspUrl }: { rtspUrl: string }) {
@@ -29,7 +30,7 @@ export default function CamerasScreen() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const cams = await getCameras();
+        const cams = await getCamerasSchool();
         setCameras(cams);
       } catch (error) {
         console.error("Error fetching cameras:", error);

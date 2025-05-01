@@ -1,12 +1,5 @@
 import React, { useState, useEffect } from "react";
-import {
-  View,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  StyleSheet,
-  Alert,
-} from "react-native";
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert } from "react-native";
 import * as Google from 'expo-auth-session/providers/google';
 import { useRouter } from "expo-router";
 import { FontAwesome } from '@expo/vector-icons';
@@ -61,7 +54,7 @@ export default function LoginScreen() {
   const handleLogin = async () => {
     if (!email || !password) {
       alert("Please fill in all fields.");
-      return;
+      return; 
     }
     try {
       await signInWithEmailAndPassword(auth, email, password);
@@ -78,10 +71,8 @@ export default function LoginScreen() {
       } else {
         router.push("/screens/notifications_student");
       }
-
-
-    } catch (error: any) {
-      Alert.alert('Login Error', error.message);
+    } catch (err: any) {
+      Alert.alert("Login Error", err.message);
     }
   };
 
@@ -159,13 +150,7 @@ export default function LoginScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, padding: 20, justifyContent: "center", backgroundColor: "#000" },
-  backButton: {
-    position: "absolute",
-    top: 50,
-    left: 20,
-    flexDirection: "row",
-    alignItems: "center",
-  },
+  backButton: {position: "absolute",top: 50,left: 20,flexDirection: "row",alignItems: "center"},
   backText: { color: "#fff", fontSize: 16, marginLeft: 5 },
   card: { backgroundColor: "#111", borderRadius: 8, padding: 20, elevation: 3 },
   header: { alignItems: "center", marginBottom: 20 },

@@ -5,7 +5,7 @@ import { addUser } from '../../services/firestore';
 import { FontAwesome } from '@expo/vector-icons';
 import { useRouter } from "expo-router";
 import { useNotification } from '@/context/NotificationContext';
-import { signInWithGoogle, getUser } from "../../services/firestore";
+import { signInWithGoogle, getUser, schoolExists } from "../../services/firestore";
 import { auth, db } from "../../firebaseConfig";
 import { doc, setDoc } from "firebase/firestore";
 
@@ -77,6 +77,19 @@ export default function SignUpScreen() {
 
   const handleSignUp = async () => {
     try {
+      if (!name || !email || !password || !schoolId) {
+        Alert.alert("Please fill in all fields.");
+        return;
+      }
+      // validate the schoolId the user just typed
+      const ok = await schoolExists(schoolId.trim());
+      if (!ok) {
+        Alert.alert(
+          "School not available",
+          `${schoolId} isn’t supported yet.`
+        );
+        return;
+      }
       await addUser(name, email, password, isAdmin, isVerifier, schoolId, expoPushToken);
       Alert.alert('Sign Up Successful!', 'Your account has been created.');
       router.push("/screens/login");
@@ -165,7 +178,7 @@ export default function SignUpScreen() {
         />
 
         {/* Optional School ID Field */}
-        <Text style={styles.label}>School ID (Optional)</Text>
+        <Text style={styles.label}>School ID</Text>
         <TextInput
           style={styles.input}
           placeholder="Enter your School ID"

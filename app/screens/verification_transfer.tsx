@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { View, Text, TextInput, Button, Alert, StyleSheet, TouchableOpacity } from "react-native";
 import { useRouter } from "expo-router";
 import { FontAwesome } from '@expo/vector-icons';
-import { doc, writeBatch } from "firebase/firestore";
+import { doc, runTransaction } from "firebase/firestore";
 import { auth, db } from "../../firebaseConfig"; 
 import { getUserByEmail, getUser} from "../../services/firestore";
 
@@ -16,17 +16,21 @@ export default function TransferVerificationScreen() {
       return;
     }
 
+    // Get current user's UID.
+    const currentUid = auth.currentUser?.uid;
+    if (!currentUid) {
+      Alert.alert("Error", "Current user not found. Please log in again.");
+      return;
+    }
+
     try {
-        // Get current user's UID.
-        const currentUid = auth.currentUser?.uid;
-        if (!currentUid) throw new Error("Current user not found.");
-  
+      /*
         // Fetch the current user's document from Firestore.
         const currentUserData = await getUser(currentUid) as any;
         if (!currentUserData.isAdmin) {
           Alert.alert("Transfer Error", "Only admin users can transfer verification rights.");
           return;
-        }
+        } */
         
         // Look up the new verifier by email.
         const newVerifierData = await getUserByEmail(newVerifierEmail) as any;
@@ -42,7 +46,8 @@ export default function TransferVerificationScreen() {
         }
         
         const newVerifierUid = newVerifierData.uid;
-        
+
+        /*
         // Proceed with transfer using a batch write.
         const batch = writeBatch(db);
         // Remove verification rights from the current user.
@@ -51,6 +56,38 @@ export default function TransferVerificationScreen() {
         batch.update(doc(db, "users", newVerifierUid), { isVerifier: true });
         
         await batch.commit();
+        */
+
+        await runTransaction(db, async (tx) => {
+          const currentRef = doc(db, "users", currentUid);
+          const targetRef = doc(db, "users", newVerifierData.uid);
+    
+          const [currentSnap, targetSnap] = await Promise.all([
+            tx.get(currentRef),
+            tx.get(targetRef)
+          ]);
+
+          const schoolId = currentSnap.data()!.schoolId;
+          const schoolDocRef = doc(db, "schools", schoolId);
+    
+          // verify that the current user is a verifier and the target user is not
+          if (!currentSnap.data()?.isVerifier) {
+            throw new Error("Only the current verifier can transfer rights.");
+          }
+          if (targetSnap.data()?.isVerifier) {
+            throw new Error("Target user is already a verifier.");
+          }
+          if (currentSnap.data()?.schoolId !== targetSnap.data()?.schoolId) {
+            throw new Error("Both users must belong to the same school.");
+          }
+    
+          // flip the flags atomically
+          tx.update(currentRef, { isVerifier: false });
+          tx.update(targetRef, { isVerifier: true });
+
+          // update the school document to reflect the new verifier
+          tx.update(schoolDocRef, { Verifier: targetRef });
+        });
   
         Alert.alert("Success", "Verification rights transferred successfully!");
         router.push("/screens/cameras");

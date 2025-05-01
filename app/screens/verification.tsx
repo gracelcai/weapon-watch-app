@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { View, Text, ActivityIndicator, Image, TouchableOpacity, StyleSheet, Alert } from "react-native";
 import { useRouter } from "expo-router";
-import { auth } from "../../firebaseConfig";
+import { doc, onSnapshot } from "firebase/firestore";
+import { auth, db } from "../../firebaseConfig";
 import { getUser } from "../../services/firestore";
 
 export default function VerificationScreen() {
@@ -25,7 +26,7 @@ export default function VerificationScreen() {
           // User is not allowed to see this screen.
           Alert.alert("Unauthorized", "You don't have verification permissions.");
           setAllowed(false);
-          router.replace("/screens/cameras");
+          //router.replace("/screens/cameras");
         }
       } catch (error: any) {
         console.error("Error fetching user data:", error);
@@ -53,6 +54,16 @@ export default function VerificationScreen() {
     return (
       <View style={styles.loadingContainer}>
         <ActivityIndicator size="large" color="#fff" />
+      </View>
+    );
+  }
+
+  if (!allowed) {
+    return (
+      <View style={styles.container}>
+        <Text style={styles.title2}>
+          Verification is only available to designated verifiers
+        </Text>
       </View>
     );
   }
@@ -94,4 +105,5 @@ const styles = StyleSheet.create({
   falseButtonText: { color: "#000", fontSize: 16, fontWeight: "bold" },
   transferButton: { marginTop: 20, alignSelf: "center", paddingBottom: 20},
   transferButtonText: { color: "#fff", fontSize: 16},
+  msg: { color: "#fff", fontSize: 18, textAlign: "center" }
 });
