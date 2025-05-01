@@ -6,7 +6,8 @@ import { FontAwesome } from '@expo/vector-icons';
 import { signInWithEmailAndPassword } from 'firebase/auth';
 import { doc, getDoc } from "firebase/firestore";
 import { auth, db } from '../../firebaseConfig';
-import { getUser, signInWithGoogle } from '../../services/firestore';
+import { useNotification } from '@/context/NotificationContext';
+import { getUser, signInWithGoogle, updateUser } from '../../services/firestore';
 
 export default function LoginScreen() {
   const router = useRouter();
@@ -14,6 +15,11 @@ export default function LoginScreen() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [schoolId, setSchoolId] = useState("");
+  const {notification, expoPushToken, error } = useNotification();
+  if (error){
+      return <Text>Error: {error.message}</Text>
+  }
+  const Token: string = expoPushToken ?? "";
 
   // Set up Google authentication request with client IDs.
   const [request, response, promptAsync] = Google.useAuthRequest({
@@ -63,6 +69,9 @@ export default function LoginScreen() {
       // Get the current user's data
       const uid = auth.currentUser?.uid;
       if (!uid) throw new Error("User not found");
+
+      await updateUser(uid, {expoPushToken: Token});
+
       const userData = await getUser(uid) as { isAdmin: boolean };
 
       // Check the isAdmin field to route appropriately

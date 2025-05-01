@@ -55,6 +55,17 @@ import 'dotenv/config';
               "./assets/sounds/emergencysos.wav"
             ]
           }
+        ],
+        [
+          "expo-video",
+          {
+            "ios": {
+                "includeVLCKit": false
+            },
+            "android": {
+                "legacyJetifier": false
+            }
+          }
         ]
       ],
       experiments: {

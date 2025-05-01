@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from "react";
 import { View, Text, ActivityIndicator, Image, TouchableOpacity, StyleSheet, Alert } from "react-native";
 import { useRouter } from "expo-router";
-import { doc, onSnapshot } from "firebase/firestore";
+import { doc, onSnapshot, getDoc } from "firebase/firestore";
 import { auth, db } from "../../firebaseConfig";
 import { getUser } from "../../services/firestore";
-import { updateConfirmThreat, getData } from '../../services/firestore';
+import { updateConfirmThreat } from '../../services/firestore';
 
 async function sendPushNotification(expoPushToken: string) {
   const message = {
@@ -25,6 +25,26 @@ async function sendPushNotification(expoPushToken: string) {
     body: JSON.stringify(message),
   });
 }
+
+async function handleConfirmThreat() {
+  alert("Threat confirmed! Authorities will be alerted.");
+  updateConfirmThreat('UMD', {'Active Event': true})
+  // Get the users of the school where was threat was detected
+  const snapshot = await getDoc(doc(db, "schools", "UMD"));
+  const data = snapshot.data();
+
+  const userRefs: Array<any> = data!.users; // users is an array of DocumentReferences
+  for (const userRef of userRefs) {
+    const userSnap = await getDoc(userRef);
+    if (userSnap.exists()) {
+      const userData = userSnap.data() as { expoPushToken: string };;
+      if (userData.expoPushToken) {
+        sendPushNotification(userData.expoPushToken);
+      }
+    }
+  }
+  // Add API call to notify security team
+};
 
 export default function VerificationScreen() {
   const router = useRouter();
@@ -60,17 +80,6 @@ export default function VerificationScreen() {
     checkUserVerification();
   }, [router]);
 
-  const handleConfirmThreat = () => {
-    alert("Threat confirmed! Authorities will be alerted.");
-    updateConfirmThreat('UMD', {'Active Event': true})
-    // Get the users of the school where was threat was detected
-    //const data = getData('schools', 'UMD')
-    // async () => {
-    //   await sendPushNotification('ExponentPushToken[oCHZlsKn7107T2sZDK4Af1]')
-    // }
-    // Add API call to notify security team
-  };
-
   const handleFalseAlert = () => {
     alert("False alarm reported.");
     updateConfirmThreat('UMD', {'Active Event': false})
@@ -105,7 +114,7 @@ export default function VerificationScreen() {
       <Image source={require("../../assets/images/shooter.avif")} style={styles.image} />
 
       {/* Action Buttons */}
-      <TouchableOpacity style={styles.confirmButton} onPress={handleConfirmThreat}>
+      <TouchableOpacity style={styles.confirmButton} onPress={async () => { await handleConfirmThreat();}}>
         <Text style={styles.confirmButtonText}>Confirm the threat alert</Text>
       </TouchableOpacity>
 
