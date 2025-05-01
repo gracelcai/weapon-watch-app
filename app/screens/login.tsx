@@ -1,18 +1,12 @@
-import React, { useState } from "react";
-import {
-  View,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  StyleSheet,
-  Alert,
-} from "react-native";
+import React, { useState, useEffect } from "react";
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert } from "react-native";
+import * as Google from 'expo-auth-session/providers/google';
 import { useRouter } from "expo-router";
 import { FontAwesome } from '@expo/vector-icons';
 import { signInWithEmailAndPassword } from 'firebase/auth';
 import { doc, getDoc } from "firebase/firestore";
 import { auth, db } from '../../firebaseConfig';
-import { getUser } from '../../services/firestore';
+import { getUser, signInWithGoogle } from '../../services/firestore';
 
 export default function LoginScreen() {
   const router = useRouter();
@@ -21,10 +15,46 @@ export default function LoginScreen() {
   const [password, setPassword] = useState("");
   const [schoolId, setSchoolId] = useState("");
 
+  // Set up Google authentication request with client IDs.
+  const [request, response, promptAsync] = Google.useAuthRequest({
+    clientId: "YOUR_EXPO_CLIENT_ID",
+    //expoClientId: "YOUR_EXPO_CLIENT_ID",
+    iosClientId: "YOUR_IOS_CLIENT_ID",
+    androidClientId: "YOUR_ANDROID_CLIENT_ID",
+    webClientId: "YOUR_WEB_CLIENT_ID",
+  });
+
+  // Handle Google auth response
+  useEffect(() => {
+    if (response?.type === "success") {
+      const handleGoogleAuth = async () => {
+        try {
+          const { id_token } = response.params;
+          await signInWithGoogle(id_token);
+          Alert.alert("Login Successful!", "Welcome back!");
+  
+          const uid = auth.currentUser?.uid;
+          if (!uid) throw new Error("User not found");
+  
+          const userData = await getUser(uid) as { isAdmin: boolean };
+          if (userData.isAdmin) {
+            router.push("/screens/cameras");
+          } else {
+            router.push("/screens/notifications_student");
+          }
+        } catch (error: any) {
+          Alert.alert("Authentication Error", error.message);
+        }
+      };
+  
+      handleGoogleAuth();
+    }
+  }, [response]);
+
   const handleLogin = async () => {
     if (!email || !password) {
       alert("Please fill in all fields.");
-      return;
+      return; 
     }
     try {
       await signInWithEmailAndPassword(auth, email, password);
@@ -39,17 +69,15 @@ export default function LoginScreen() {
       if (userData.isAdmin) {
         router.push("/screens/cameras");
       } else {
-        router.push("/screens/student_notifications");
+        router.push("/screens/notifications_student");
       }
-
-
-    } catch (error: any) {
-      Alert.alert('Login Error', error.message);
+    } catch (err: any) {
+      Alert.alert("Login Error", err.message);
     }
   };
 
   const handleGoogleLogin = () => {
-    alert("Google Login Clicked! (integrate Firebase Auth here)");
+    promptAsync();
   };
 
   return (
@@ -122,13 +150,7 @@ export default function LoginScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, padding: 20, justifyContent: "center", backgroundColor: "#000" },
-  backButton: {
-    position: "absolute",
-    top: 50,
-    left: 20,
-    flexDirection: "row",
-    alignItems: "center",
-  },
+  backButton: {position: "absolute",top: 50,left: 20,flexDirection: "row",alignItems: "center"},
   backText: { color: "#fff", fontSize: 16, marginLeft: 5 },
   card: { backgroundColor: "#111", borderRadius: 8, padding: 20, elevation: 3 },
   header: { alignItems: "center", marginBottom: 20 },

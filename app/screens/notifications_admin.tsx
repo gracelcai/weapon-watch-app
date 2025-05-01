@@ -1,9 +1,14 @@
 import React from "react";
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView } from "react-native";
 import { useRouter } from "expo-router";
+import { useNotification } from '@/context/NotificationContext';
 
 export default function AdminNotifications() {
   const router = useRouter();
+  const {notification, expoPushToken, error } = useNotification();
+  if (error){
+    return <Text>Error: {error.message}</Text>
+  }
 
   return (
     <View style={styles.container}>
@@ -59,75 +64,17 @@ export default function AdminNotifications() {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#000",
-    padding: 16,
-    paddingTop: 60,
-  },
-  title: {
-    color: "#fff",
-    fontSize: 24,
-    fontWeight: "bold",
-    textAlign: "center",
-    marginBottom: 16,
-  },
-  searchContainer: {
-    backgroundColor: "#222",
-    borderRadius: 10,
-    padding: 10,
-    marginBottom: 12,
-  },
-  searchInput: {
-    color: "#fff",
-    fontSize: 16,
-  },
-  notificationList: {
-    paddingBottom: 80, // Extra space for the create button
-  },
-  notificationItem: {
-    backgroundColor: "#333",
-    padding: 12,
-    borderRadius: 8,
-    marginBottom: 10,
-  },
-  urgent: {
-    backgroundColor: "#660000",
-  },
-  notificationTitle: {
-    color: "#fff",
-    fontSize: 16,
-    fontWeight: "bold",
-  },
-  notificationTime: {
-    color: "#bbb",
-    fontSize: 12,
-    textAlign: "right",
-  },
-  notificationText: {
-    color: "#fff",
-    fontSize: 14,
-    marginVertical: 5,
-  },
-  tapToView: {
-    color: "#ff6666",
-    fontSize: 14,
-    textDecorationLine: "underline",
-  },
-  createButton: {
-    backgroundColor: "#fff",
-    padding: 15,
-    borderRadius: 30,
-    alignItems: "center",
-    justifyContent: "center",
-    position: "absolute",
-    bottom: 20,
-    left: "35%",
-    width: "30%",
-  },
-  createButtonText: {
-    color: "#000",
-    fontSize: 16,
-    fontWeight: "bold",
-  },
+  container: {flex: 1,backgroundColor: "#000",padding: 16,paddingTop: 60,},
+  title: {color: "#fff",fontSize: 24,fontWeight: "bold",textAlign: "center",marginBottom: 16},
+  searchContainer: {backgroundColor: "#222",borderRadius: 10,padding: 10,marginBottom: 12,},
+  searchInput: {color: "#fff",fontSize: 16,},
+  notificationList: {paddingBottom: 20}, // Extra space for the create button},
+  notificationItem: {backgroundColor: "#333",padding: 12,borderRadius: 8,marginBottom: 10,},
+  urgent: {backgroundColor: "#660000",},
+  notificationTitle: {color: "#fff",fontSize: 16,fontWeight: "bold",},
+  notificationTime: {color: "#bbb",fontSize: 12,textAlign: "right",},
+  notificationText: {color: "#fff",fontSize: 14,marginVertical: 5,},
+  tapToView: {color: "#ff6666",fontSize: 14,textDecorationLine: "underline",},
+  createButton: {backgroundColor: "#fff",padding: 15,borderRadius: 30,alignItems: "center",justifyContent: "center",position: "absolute",bottom: 20,left: "35%",width: "30%",},
+  createButtonText: {color: "#000",fontSize: 16,fontWeight: "bold",},
 });

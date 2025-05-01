@@ -8,10 +8,11 @@ const {
 	FIREBASE_MESSAGING_SENDER_ID,
 	FIREBASE_APP_ID,
 	FIREBASE_MEASUREMENT_ID,
-} = Constants.expoConfig?.extra || {};
+} = Constants.expoConfig?.extra || {}; 
 
 // Import the functions you need from the SDKs you need
 // https://firebase.google.com/docs/web/setup#available-libraries
+
 import { initializeApp } from "firebase/app";
 import { getAnalytics, isSupported } from "firebase/analytics";
 import { getFirestore } from "firebase/firestore";
@@ -34,7 +35,11 @@ const firebaseConfig = {
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
 
-// Initialize services
+// Initialize Firestore
+const db = getFirestore(app);
+
+// Initialize Auth
+
 const auth = initializeAuth(app, {
 	persistence: getReactNativePersistence(ReactNativeAsyncStorage),
 });
@@ -44,6 +49,6 @@ isSupported().then((supported) => {
 		// use analytics as needed
 	}
 });
-const db = getFirestore(app);
+
 
 export { auth, db };
