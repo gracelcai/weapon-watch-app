@@ -1,17 +1,45 @@
 import React from "react";
 import { View, Text, Image, TouchableOpacity, StyleSheet } from "react-native";
 import { useRouter } from "expo-router";
+import { updateConfirmThreat, getData } from '../../services/firestore';
+
+async function sendPushNotification(expoPushToken: string) {
+  const message = {
+    to: expoPushToken,
+    sound: 'default',
+    title: 'Original Title',
+    body: 'And here is the body!',
+    data: { someData: 'goes here' },
+  };
+
+  await fetch('https://exp.host/--/api/v2/push/send', {
+    method: 'POST',
+    headers: {
+      Accept: 'application/json',
+      'Accept-encoding': 'gzip, deflate',
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(message),
+  });
+}
 
 export default function VerificationScreen() {
   const router = useRouter();
 
   const handleConfirmThreat = () => {
     alert("Threat confirmed! Authorities will be alerted.");
+    updateConfirmThreat('UMD', {'Active Event': true})
+    // Get the users of the school where was threat was detected
+    //const data = getData('schools', 'UMD')
+    // async () => {
+    //   await sendPushNotification('ExponentPushToken[oCHZlsKn7107T2sZDK4Af1]')
+    // }
     // Add API call to notify security team
   };
 
   const handleFalseAlert = () => {
     alert("False alarm reported.");
+    updateConfirmThreat('UMD', {'Active Event': false})
     // Add API call to log false alert
   };
 

@@ -72,3 +72,39 @@ export const getUser = async (uid) => {
     throw new Error("User data not found in Firestore.");
   }
 };
+
+/**
+ * Updates an existing user's data in Firestore.
+ *
+ * @param {string} schoolId - The ID of the school to update.
+ * @param {Object} data - The data to update (e.g., name, email, isAdmin).
+ * @returns {Promise<void>}
+ */
+export const updateConfirmThreat = async (schoolId, data) => {
+  try {
+    // Update the user document in Firestore
+    await updateDoc(doc(db, 'schools', schoolId), data);
+    console.log("Confirm threat successfully updated:", schoolId);
+  } catch (error) {
+    console.error("Error updating confirm threat:", error);
+    throw error;
+  }
+};
+
+
+/**
+ * Retrieves any data from Firestore for the given id.
+ * @param {string} collection - The root collection.
+ * @param {string} id - The ID.
+ * @returns {Promise<Object>} - A promise that resolves to the user data object.
+ * @throws Will throw an error if the document does not exist.
+ */
+export const getData = async (collection, id) => {
+  const DocRef = doc(db, collection, id);
+  const DocSnap = await getDoc(DocRef);
+  if (DocSnap.exists()) {
+    return DocSnap.data();
+  } else {
+    throw new Error("Collection, ID, or data not found in Firestore.");
+  }
+};

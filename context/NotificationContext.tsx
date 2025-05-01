@@ -11,6 +11,7 @@ import { EventSubscription } from "expo-modules-core";
 import { registerForPushNotificationsAsync } from "@/utils/registerForPushNotificationsAsync";
 import { router } from "expo-router";
 
+
 interface NotificationContextType {
   expoPushToken: string | null;
   notification: Notifications.Notification | null;
