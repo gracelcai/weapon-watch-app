@@ -17,6 +17,7 @@ function CameraFeed({ rtspUrl }: { rtspUrl: string }) {
     />
   );
 }
+const ACCENT = "#4da6ff";
 
 export default function CamerasScreen() {
   const router = useRouter();
@@ -66,56 +67,129 @@ export default function CamerasScreen() {
     <View style={styles.container}>
       <Text style={styles.title}>CAMERAS</Text>
 
-      {/* For each floor, render an expandable section with a list of cameras */}
-      {Object.keys(camerasByFloor).map((floor) => (
-        <View key={floor} style={styles.floorSection}>
-          {/* Floor Header: Tapping toggles expansion */}
-          <TouchableOpacity onPress={() => toggleFloor(floor)}>
-            <Text style={styles.floorTitle}>
-              {expandedFloors[floor] ? "▼ " : "▶ "}
-              Floor {floor}
-            </Text>
-          </TouchableOpacity>
-          
-          {/* If the floor is expanded, list cameras */}
-          {expandedFloors[floor] &&
-            camerasByFloor[floor].map((camera) => (
-              <View key={camera.id} style={styles.cameraSection}>
-                {/* Camera label: tapping toggles the live feed */}
-                <TouchableOpacity onPress={() => toggleFeed(camera.id)}>
-                  <Text style={styles.cameraLabel}>{camera.name}</Text>
-                </TouchableOpacity>
-                {/* If the camera's feed is visible and a video link exists, render the live feed */}
-                {visibleFeeds[camera.id] && camera.video_link ? (
-                  <CameraFeed rtspUrl={camera.video_link} />
-                ) : null}
-              </View>
-            ))
-          }
-        </View>
-      ))}
-
-      {/* Manage Cameras Button */}
-      <TouchableOpacity 
-        style={styles.manageButton} 
+      {/* Manage Cameras button */}
+      <TouchableOpacity
+        style={styles.manageButton}
         onPress={() => router.push("/screens/cameras_manage")}
+        activeOpacity={0.8}
       >
         <Text style={styles.manageButtonText}>Manage Cameras</Text>
       </TouchableOpacity>
+
+      {/* Floors & cameras */}
+      {Object.keys(camerasByFloor).map((floor) => (
+        <View key={floor} style={styles.floorContainer}>
+          {/* ───── Floor header ───── */}
+          <TouchableOpacity
+            activeOpacity={0.8}
+            onPress={() => toggleFloor(floor)}
+            style={[
+              styles.floorHeader,
+              expandedFloors[floor] && { backgroundColor: "#111" },
+            ]}
+          >
+            <Text
+              style={[
+                styles.floorTitle,
+                expandedFloors[floor] && { color: ACCENT },
+              ]}
+            >
+              {expandedFloors[floor] ? "▼ " : "▶ "}Floor {floor}
+            </Text>
+          </TouchableOpacity>
+
+          {/* ───── Camera list ───── */}
+          {expandedFloors[floor] &&
+            camerasByFloor[floor].map((camera) => (
+              <View key={camera.id}>
+                {/* camera “pill” */}
+                <TouchableOpacity
+                  activeOpacity={0.8}
+                  style={[
+                    styles.cameraPill,
+                    visibleFeeds[camera.id] && { borderColor: ACCENT },
+                  ]}
+                  onPress={() => toggleFeed(camera.id)}
+                >
+                  <Text style={styles.cameraLabel}>{camera.name}</Text>
+                </TouchableOpacity>
+
+                {/* RTSP feed (optional) */}
+                {visibleFeeds[camera.id] && camera.video_link && (
+                  <CameraFeed rtspUrl={camera.video_link} />
+                )}
+              </View>
+            ))}
+        </View>
+      ))}
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {flex: 1,backgroundColor: "#000",padding: 16,paddingTop: 60,},
-  title: { color: "#fff", fontSize: 24, fontWeight: "bold", textAlign: "center", marginBottom: 10 },
-  floorContainer: { marginBottom: 20 },
-  floorTitle: { color: "#fff", fontSize: 18, marginBottom: 8 },
-  picker: { color: "#fff", backgroundColor: "#222" },
-  manageButton: { backgroundColor: "#201c1c", padding: 16, borderRadius: 8, alignItems: "center", marginTop: 20 },
-  manageButtonText: { color: "#fff", fontSize: 16, fontWeight: "bold" },
-  cameraFeed: { width: "100%", height: 150, marginTop: 5, borderRadius: 8, backgroundColor: "#000" },
-  floorSection: { marginBottom: 20 },
-  cameraSection: { marginLeft: 20, marginBottom: 10 },
-  cameraLabel: { color: "#fff", fontSize: 16 },
+  container: {
+    flex: 1,
+    backgroundColor: "#000",
+    paddingHorizontal: 16,
+    paddingTop: 52, // status-bar offset
+  },
+  title: {
+    color: "#fff",
+    fontSize: 26,
+    fontWeight: "800",
+    textAlign: "center",
+    marginBottom: 12,
+    letterSpacing: 1,
+  },
+  manageButton: {
+    backgroundColor: "#1a1a1a",
+    padding: 14,
+    borderRadius: 10,
+    alignItems: "center",
+    marginVertical: 18,
+  },
+  manageButtonText: {
+    color: "#fff",
+    fontSize: 16,
+    fontWeight: "700",
+  },
+
+  floorContainer: { marginBottom: 18 },
+  floorHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingVertical: 6,
+    paddingHorizontal: 4,
+    borderRadius: 6,
+  },
+  floorTitle: {
+    color: "#fff",
+    fontSize: 18,
+    fontWeight: "600",
+  },
+
+  cameraPill: {
+    borderWidth: 1,
+    borderColor: "#444",
+    borderRadius: 20,
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    marginLeft: 24,
+    marginBottom: 8,
+  },
+  cameraLabel: {
+    color: "#fff",
+    fontSize: 15,
+  },
+
+  cameraFeed: {
+    width: "92%",
+    height: 160,
+    alignSelf: "center",
+    marginTop: 6,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: "#222",
+    backgroundColor: "#000",
+  },
 });
