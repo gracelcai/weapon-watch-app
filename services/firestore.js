@@ -89,13 +89,12 @@ export const getUser = async (uid) => {
 };
 
 /**
-<<<<<<< HEAD
- * Updates an existing user's data in Firestore.
- *
- * @param {string} schoolId - The ID of the school to update.
- * @param {Object} data - The data to update (e.g., name, email, isAdmin).
- * @returns {Promise<void>}
- */
+  * Updates an existing user's data in Firestore.
+  *
+  * @param {string} schoolId - The ID of the school to update.
+  * @param {Object} data - The data to update (e.g., name, email, isAdmin).
+  * @returns {Promise<void>}
+  */
 export const updateConfirmThreat = async (schoolId, data) => {
   try {
     // Update the user document in Firestore
@@ -103,7 +102,11 @@ export const updateConfirmThreat = async (schoolId, data) => {
     console.log("Confirm threat successfully updated:", schoolId);
   } catch (error) {
     console.error("Error updating confirm threat:", error);
-=======
+    throw error;
+  }
+};
+
+/**
  * Signs in a user using a Google ID token.
  *
  * @param {string} idToken - The Google ID token obtained from your Google auth flow.
@@ -177,13 +180,11 @@ export const addCamera = async (cameraId, cameraData) => {
     return true;
   } catch (error) {
     console.error("Error adding camera:", error);
->>>>>>> 5c8701cd1d1247832bfe12842539e2b7a71748ad
     throw error;
   }
 };
 
 
-<<<<<<< HEAD
 /**
  * Retrieves any data from Firestore for the given id.
  * @param {string} collection - The root collection.
@@ -199,7 +200,8 @@ export const getData = async (collection, id) => {
   } else {
     throw new Error("Collection, ID, or data not found in Firestore.");
   }
-=======
+};
+
 
 
 /**
@@ -254,5 +256,4 @@ export const getCamerasSchool = async () => {
 export const schoolExists = async (schoolId) => {
   const snap = await getDoc(doc(db, "schools", schoolId));
   return snap.exists();
->>>>>>> 5c8701cd1d1247832bfe12842539e2b7a71748ad
 };
