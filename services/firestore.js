@@ -26,8 +26,6 @@ export const addUser = async (name, email, password, isAdmin, isVerifier, school
 
     const { user } = await createUserWithEmailAndPassword(getAuth(), email, password);
     
-    // Update the user's display name in Firebase Auth
-    await updateProfile(user, { displayName: name });
 
     /* build the document references right here */
     const userRef = doc(db, "users", user.uid);
@@ -37,8 +35,8 @@ export const addUser = async (name, email, password, isAdmin, isVerifier, school
       name,
       email,
       schoolId,
-      isAdmin: false,
-      isVerifier: false,
+      isAdmin: isAdmin,
+      isVerifier: isVerifier,
       expoPushToken,
       createdAt: new Date()
     });

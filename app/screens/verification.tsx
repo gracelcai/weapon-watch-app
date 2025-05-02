@@ -9,10 +9,13 @@ import { updateConfirmThreat } from '../../services/firestore';
 async function sendPushNotification(expoPushToken: string) {
   const message = {
     to: expoPushToken,
-    sound: 'default',
-    title: 'Original Title',
-    body: 'And here is the body!',
-    data: { someData: 'goes here' },
+    sound: 'emergencysos.wav',
+    title: 'Weapon Detected!',
+    body: 'A potential weapon has been detected. Please .',
+    data: { url: 'screens/notifications_student' },
+    channelId: 'weapon_detected', 
+    sticky: true,
+    priority: 'high',
   };
 
   await fetch('https://exp.host/--/api/v2/push/send', {
@@ -39,6 +42,7 @@ async function handleConfirmThreat() {
     if (userSnap.exists()) {
       const userData = userSnap.data() as { expoPushToken: string };;
       if (userData.expoPushToken) {
+        console.log(userData.expoPushToken);
         sendPushNotification(userData.expoPushToken);
       }
     }
