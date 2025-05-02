@@ -1,12 +1,5 @@
 import React, { useState, useEffect } from "react";
-import {
-  View,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  StyleSheet,
-  Alert,
-} from "react-native";
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert } from "react-native";
 import { useRouter } from "expo-router";
 import { FontAwesome } from "@expo/vector-icons";
 import { auth, db } from '../../firebaseConfig';
@@ -35,10 +28,12 @@ export default function Settings() {
         try {
           const uid = auth.currentUser?.uid;
           if (!uid) throw new Error("User not found");
-          const userData = (await getUser(uid)) as { isAdmin: boolean; schoolId?: string };
+          const userData = (await getUser(uid)) as { isAdmin: boolean; isVerifier: boolean; schoolId?: string };
           setSchoolId(userData.schoolId || "");
           if (userData.isAdmin) {
             setRole("Admin");
+          } else if (userData.isVerifier) {
+              setRole("Admin & Verifier");
           } else {
             setRole("Student/Faculty");
           }
@@ -91,15 +86,13 @@ export default function Settings() {
       if (userData.isAdmin) {
         router.push("/screens/cameras");
       } else {
-        router.push("/screens/student_notifications");
+        router.push("/screens/notifications_student");
       }
     } catch (error: any) {
       Alert.alert('Error', error.message);
     }
   };
     
-  
-
   return (
     <View style={styles.container}>
       {/* Back Button */}
@@ -162,12 +155,7 @@ export default function Settings() {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#000",
-    padding: 16,
-    justifyContent: "center",
-  },
+  container: {flex: 1,backgroundColor: "#000",padding: 16,justifyContent: "center",},
   backButton: {position: "absolute", top: 50, left: 20, flexDirection: "row", alignItems: "center"},
   backText: { color: "#fff", fontSize: 16, marginLeft: 5 },
   title: {color: "#fff", fontSize: 24, fontWeight: "bold", textAlign: "center", marginBottom: 24},

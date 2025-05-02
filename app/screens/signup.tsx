@@ -1,17 +1,13 @@
-// SignUpScreen.tsx
-import React, { useState } from 'react';
-import { 
-    View, 
-    TextInput, 
-    Button, 
-    Alert,
-    Text,
-    TouchableOpacity,
-    StyleSheet,
-} from "react-native";
+import React, { useState, useEffect } from 'react';
+import { View, TextInput, Button, Alert, Text, TouchableOpacity, StyleSheet } from "react-native";
+import * as Google from "expo-auth-session/providers/google";
 import { addUser } from '../../services/firestore';
 import { FontAwesome } from '@expo/vector-icons';
 import { useRouter } from "expo-router";
+import { useNotification } from '@/context/NotificationContext';
+import { signInWithGoogle, getUser, schoolExists } from "../../services/firestore";
+import { auth, db } from "../../firebaseConfig";
+import { doc, setDoc } from "firebase/firestore";
 
 export default function SignUpScreen() {
   const router = useRouter();
@@ -19,11 +15,82 @@ export default function SignUpScreen() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isAdmin, setIsAdmin] = useState(false);
+  const [isVerifier, setIsVerifier] = useState(false);
   const [schoolId, setSchoolId] = useState('');
+  const {notification, expoPushToken, error } = useNotification();
+  if (error){
+    return <Text>Error: {error.message}</Text>
+  }
+
+  // Set up the Google authentication request.
+  const [request, response, promptAsync] = Google.useAuthRequest({
+    // expoClientId: "YOUR_EXPO_CLIENT_ID.apps.googleusercontent.com",
+    iosClientId: "YOUR_IOS_CLIENT_ID.apps.googleusercontent.com",
+    androidClientId: "YOUR_ANDROID_CLIENT_ID.apps.googleusercontent.com",
+    webClientId: "YOUR_WEB_CLIENT_ID.apps.googleusercontent.com",
+  });
+
+  useEffect(() => {
+    if (response?.type === "success") {
+      const handleGoogleSignup = async () => {
+        try {
+          // Extract the Google ID token and sign in with Firebase.
+          const { id_token } = response.params;
+          await signInWithGoogle(id_token);
+          Alert.alert("Signup Successful!", "Your account has been created.");
+
+          // Get the current user's UID.
+          const uid = auth.currentUser?.uid;
+          if (!uid) throw new Error("User not found");
+
+          // Try to fetch the user document from Firestore.
+          let userData;
+          try {
+            userData = await getUser(uid);
+          } catch (err) {
+            // If it doesn't exist, create a new Firestore document.
+            await setDoc(doc(db, "users", uid), {
+              name: auth.currentUser?.displayName || "",
+              email: auth.currentUser?.email || "",
+              isAdmin: false, // Default to false (student/faculty). Adjust as needed.
+              schoolId: "",   // Optional: set a default or leave empty.
+              createdAt: new Date(),
+            });
+            userData = await getUser(uid) as any;
+          }
+
+          // Route based on the user's role.
+          if (userData.isAdmin) {
+            router.push("/screens/cameras");
+          } else {
+            router.push("/screens/notifications_student");
+          }
+        } catch (error: any) {
+          Alert.alert("Google Sign-Up Error", error.message);
+        }
+      };
+
+      handleGoogleSignup();
+    }
+  }, [response]);
+
 
   const handleSignUp = async () => {
     try {
-      await addUser(name, email, password, isAdmin, schoolId);
+      if (!name || !email || !password || !schoolId) {
+        Alert.alert("Please fill in all fields.");
+        return;
+      }
+      // validate the schoolId the user just typed
+      const ok = await schoolExists(schoolId.trim());
+      if (!ok) {
+        Alert.alert(
+          "School not available",
+          `${schoolId} isn’t supported yet.`
+        );
+        return;
+      }
+      await addUser(name, email, password, isAdmin, isVerifier, schoolId, expoPushToken);
       Alert.alert('Sign Up Successful!', 'Your account has been created.');
       router.push("/screens/login");
     } catch (error: any) {
@@ -32,8 +99,7 @@ export default function SignUpScreen() {
   };
 
   const handleGoogleSignup = () => {
-    // Implement Google sign-up here.
-    Alert.alert("Google Sign Up", "Implement Google sign-up here");
+    promptAsync();
   };
 
   return (
@@ -112,7 +178,7 @@ export default function SignUpScreen() {
         />
 
         {/* Optional School ID Field */}
-        <Text style={styles.label}>School ID (Optional)</Text>
+        <Text style={styles.label}>School ID</Text>
         <TextInput
           style={styles.input}
           placeholder="Enter your School ID"
@@ -146,13 +212,7 @@ export default function SignUpScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, padding: 20, justifyContent: "center", backgroundColor: "#000" },
-  backButton: {
-    position: "absolute",
-    top: 50,
-    left: 20,
-    flexDirection: "row",
-    alignItems: "center",
-  },
+  backButton: {position: "absolute",top: 50,left: 20,flexDirection: "row",alignItems: "center",},
   backText: { color: "#fff", fontSize: 16, marginLeft: 5 },
   card: { backgroundColor: "#111", borderRadius: 8, padding: 20, elevation: 3 },
   header: { alignItems: "center", marginBottom: 20 },
