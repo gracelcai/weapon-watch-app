@@ -16,11 +16,16 @@ const {
 import { initializeApp } from "firebase/app";
 import { getAnalytics, isSupported } from "firebase/analytics";
 import { getFirestore } from "firebase/firestore";
-import { initializeAuth, getReactNativePersistence } from "firebase/auth";
+// import { initializeAuth, getReactNativePersistence } from "firebase/auth";
 //Had to change it to this for it to work on android. Change it back if it doesn't work on ios
 // import { initializeAuth } from "@firebase/auth";
-// import { getReactNativePersistence } from '@firebase/auth/dist/rn/index.js';
-import ReactNativeAsyncStorage from "@react-native-async-storage/async-storage";
+import { getReactNativePersistence } from '@firebase/auth/dist/rn/index.js';
+// import { getAuth } from "@firebase/auth";
+// import { getReactNativePersistence } from "firebase/auth";
+import { initializeAuth } from "firebase/auth";
+// import { getReactNativePersistence } from "firebase/auth/react-native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+// import ReactNativeAsyncStorage from "@react-native-async-storage/async-storage";
 
 // Your web app's Firebase configuration
 // For Firebase JS SDK v7.20.0 and later, measurementId is optional
@@ -42,9 +47,13 @@ const db = getFirestore(app);
 
 // Initialize Auth
 
+// const auth = initializeAuth(app, {
+// 	persistence: getReactNativePersistence(ReactNativeAsyncStorage),
+// });
+// const auth = getAuth(app);
 const auth = initializeAuth(app, {
-	persistence: getReactNativePersistence(ReactNativeAsyncStorage),
-});
+	persistence: getReactNativePersistence(AsyncStorage)
+  });
 isSupported().then((supported) => {
 	if (supported) {
 		const analytics = getAnalytics(app);
