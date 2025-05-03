@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { View, Text, StyleSheet, Image, FlatList, Button } from "react-native";
 import MapView, { Marker, Circle, Polygon, Callout, Overlay } from "react-native-maps";
 import { getCameras} from "../../services/firestore.js"; 
-import { onSnapshot, collection,  } from "firebase/firestore";
+import { onSnapshot, collection, doc} from "firebase/firestore";
 import { db } from "../../firebaseConfig";
 
 // Types
@@ -73,6 +73,18 @@ interface Props {
 
 const roomPolygons: Room[] = [
   // FLOOR ONE 11111111
+  {
+    id: "outside",
+    name: "outside",
+    floor: { number: 1, name: "First Floor" },  // Updated with floor number and name, 
+    polygon: [
+      { x: 0, y: 0.930 },
+      { x: 0.018, y: 0.930},
+      { x: 0.018, y: 0},
+      { x: 0, y: 0.0},
+    ], // counterclockwise from top left
+  },
+
   {
     id: "room-1101",
     name: "Room 1101",
@@ -566,7 +578,7 @@ export default function TrackingPage() {
   useEffect(() => {
     // Create a listener to fetch the data from Firestore in real-time
     const unsubscribe = onSnapshot(
-      collection(db, 'cameras'), // Firestore collection
+      collection(doc(db, "schools", "UMD"), "cameras"),
       (snapshot) => {
         const camerasFromFirestore: Camera[] = snapshot.docs.map((doc) => {
           const data = doc.data();
@@ -656,24 +668,23 @@ export default function TrackingPage() {
 {roomPolygons
   .filter((room) => room.floor.number === currentFloor.number)
   .map((room) => {
-    // Find the camera associated with this room
-    const camera = cameraData.find(
-      (cam) => cam.roomID === room.id // Assumes camera has a `roomId` field
-    );
+    // Find all cameras associated with the room
+const camerasInRoom = cameraData.filter((cam) => cam.roomID === room.id);
 
-    // Get the detection state from the camera (check for null or undefined)
-    const detected = camera?.detected;
+// Determine the detection state for the room based on all associated cameras
+const detected = camerasInRoom.some((camera) => camera.detected);
 
-    // Function to determine the polygon color based on detection status
-    const getPolygonColor = (camera: any) => {
-      if (camera?.shooter_detected || camera?.weapon_detected) {
-        return "rgba(255, 0, 0, 0.3)"; // Red if shooter or weapon detected
-      }
-      return "rgba(0, 255, 0, 0.2)"; // Green otherwise
-    };
+// Function to determine the polygon color based on detection status
+const getPolygonColor = (cameras: any[]) => {
+  // If any camera in the room has detected a shooter or weapon, return red
+  if (cameras.some((camera) => camera.shooter_detected || camera.weapon_detected)) {
+    return "rgba(255, 0, 0, 0.3)"; // Red if shooter or weapon detected
+  }
+  return "rgba(0, 255, 0, 0.2)"; // Green otherwise
+};
 
-    // Get fill color using the updated function
-    const fillColor = getPolygonColor(camera);
+// Get the fill color for the room based on the updated logic
+const fillColor = getPolygonColor(camerasInRoom);
 
     const handlePolygonPress = () => {
       console.log(`Polygon clicked: ${room.name}`); // Assuming each room has a `name` property
