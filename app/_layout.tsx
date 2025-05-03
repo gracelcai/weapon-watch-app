@@ -54,9 +54,9 @@ export default function RootLayout() {
             <FontAwesome5 name="shield-alt" size={24} color={isActive("/screens/verification") ? "#fff" : "#777"} />
           </TouchableOpacity>
 
-          <TouchableOpacity onPress={() => router.push("/screens/notifications_admin")} style={styles.navItem}>
+          {/* <TouchableOpacity onPress={() => router.push("/screens/notifications_admin")} style={styles.navItem}>
             <FontAwesome5 name="bell" size={24} color={isActive("/screens/admin_notification_admin") ? "#fff" : "#777"} />
-          </TouchableOpacity>
+          </TouchableOpacity> */}
 
           <TouchableOpacity onPress={() => router.push("/screens/settings")} style={styles.navItem}>
             <FontAwesome5 name="cog" size={24} color={isActive("/screens/settings") ? "#fff" : "#777"} />
