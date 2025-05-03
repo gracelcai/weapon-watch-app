@@ -7,6 +7,7 @@ import { getCameras, getCamerasSchool, getUser } from "../../services/firestore"
 import { auth, db } from "../../firebaseConfig";
 import Video from "react-native-video";
 
+/*
 // CameraFeed component: shows the live feed given an RTSP URL.
 function CameraFeed({ rtspUrl }: { rtspUrl: string }) {
   return (
@@ -21,6 +22,7 @@ function CameraFeed({ rtspUrl }: { rtspUrl: string }) {
     </View>
   );
 }
+*/
 const ACCENT = "#4da6ff";
 
 export default function CamerasScreen() {
@@ -119,9 +121,9 @@ export default function CamerasScreen() {
                 </TouchableOpacity>
 
                 {/* RTSP feed (optional) */}
-                {visibleFeeds[camera.id] && camera.video_link && (
-                  <CameraFeed rtspUrl={camera.video_link} />
-                )}
+                {visibleFeeds[camera.id] && camera.video_link 
+                //&& (<CameraFeed rtspUrl={camera.video_link}/>)
+                 }
               </View>
             ))}
         </View>

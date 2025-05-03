@@ -53,7 +53,18 @@
             "./assets/sounds/emergencysos.wav"
           ]
         }
-      ]
+      ],
+      // [
+      //   "expo-video",
+      //   {
+      //     "ios": {
+      //         "includeVLCKit": false
+      //     },
+      //     "android": {
+      //         "legacyJetifier": false
+      //     }
+      //   }
+      // ]
     ],
     "experiments": {
       "typedRoutes": true
@@ -66,6 +77,9 @@
         "projectId": "weapon-watch"
       }
     },
-    "owner": "gracelcai"
+    "owner": "keguida",
+    "notification": {
+      "vapidPublicKey": "BJJEqGV-QQXXOXC_CPHlhsiCExoJ9cK_SyfTD6IHtBDzdqENphngRtIC6TQ8FA06WgLsNpbH5xPEDf4v_edyD1E"
+    }
   }
 }

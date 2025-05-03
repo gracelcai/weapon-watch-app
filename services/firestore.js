@@ -18,16 +18,9 @@ import { collection, query, where, getDocs } from "firebase/firestore";
  * @returns {Promise<void>}
  */
 export const addUser = async (name, email, password, isAdmin, isVerifier, schoolId, expoPushToken) => {
-  let user; // Declare user outside the try block for cleanup in case of errors
+  const { user } = await createUserWithEmailAndPassword(getAuth(), email, password);
   try {
-    // Create a new user with email and password
-    const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-    user = userCredential.user;
-
-    // Update the user's display name in Firebase Auth
-    await updateProfile(user, { displayName: name });
-
-    // Build the document references
+ 
     const userRef = doc(db, "users", user.uid);
     const schoolRef = doc(db, "schools", schoolId);
 
@@ -36,13 +29,13 @@ export const addUser = async (name, email, password, isAdmin, isVerifier, school
       name,
       email,
       schoolId,
-      isAdmin: isAdmin,
-      isVerifier: false,
-      expoPushToken: expoPushToken || null,
-      createdAt: new Date(),
+      isAdmin,
+      isVerifier,
+      expoPushToken,
+      createdAt: new Date()
     });
-
-    // Add the user reference to the school's users array
+  
+    /* push the ref into the school’s usersw array */
     await updateDoc(schoolRef, { users: arrayUnion(userRef) });
 
     console.log("User successfully added:", user.uid);
@@ -90,6 +83,24 @@ export const getUser = async (uid) => {
     return userDocSnap.data();
   } else {
     throw new Error("User data not found in Firestore.");
+  }
+};
+
+/**
+  * Updates an existing user's data in Firestore.
+  *
+  * @param {string} schoolId - The ID of the school to update.
+  * @param {Object} data - The data to update (e.g., name, email, isAdmin).
+  * @returns {Promise<void>}
+  */
+export const updateConfirmThreat = async (schoolId, data) => {
+  try {
+    // Update the user document in Firestore
+    await updateDoc(doc(db, 'schools', schoolId), data);
+    console.log("Confirm threat successfully updated:", schoolId);
+  } catch (error) {
+    console.error("Error updating confirm threat:", error);
+    throw error;
   }
 };
 
