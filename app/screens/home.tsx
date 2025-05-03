@@ -17,7 +17,9 @@ export default function Home() {
       <Text style={styles.title}>WEAPON WATCH</Text>
 
       {/* Login Button */}
-      <TouchableOpacity style={styles.button} onPress={() => router.push("/screens/login")}>
+      <TouchableOpacity style={styles.button} onPress={() => {
+        router.push("/screens/login");
+        console.log("Navigating to /screens/login");}}>
         <Text style={styles.buttonText}>LOGIN</Text>
       </TouchableOpacity>
 

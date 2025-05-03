@@ -1,4 +1,4 @@
-import 'dotenv/config';
+import "dotenv/config";
 
   export default ({ config }) => ({
     expo: {
@@ -35,6 +35,10 @@ import 'dotenv/config';
       },
       plugins: [
         "expo-router",
+        "expo-router",
+        "expo-font",
+        "expo-web-browser",
+        "expo-secure-store",
         [
           "expo-splash-screen",
           {

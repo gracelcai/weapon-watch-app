@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert } from "react-native";
-import * as Google from 'expo-auth-session/providers/google';
+import * as Google from "expo-auth-session/providers/google";
 import { useRouter } from "expo-router";
 import { FontAwesome } from '@expo/vector-icons';
 import { signInWithEmailAndPassword } from 'firebase/auth';
@@ -24,7 +24,6 @@ export default function LoginScreen() {
   // Set up Google authentication request with client IDs.
   const [request, response, promptAsync] = Google.useAuthRequest({
     clientId: "YOUR_EXPO_CLIENT_ID",
-    //expoClientId: "YOUR_EXPO_CLIENT_ID",
     iosClientId: "YOUR_IOS_CLIENT_ID",
     androidClientId: "YOUR_ANDROID_CLIENT_ID",
     webClientId: "YOUR_WEB_CLIENT_ID",
@@ -38,10 +37,10 @@ export default function LoginScreen() {
           const { id_token } = response.params;
           await signInWithGoogle(id_token);
           Alert.alert("Login Successful!", "Welcome back!");
-  
+
           const uid = auth.currentUser?.uid;
           if (!uid) throw new Error("User not found");
-  
+
           const userData = await getUser(uid) as { isAdmin: boolean };
           if (userData.isAdmin) {
             router.push("/screens/cameras");
@@ -52,7 +51,7 @@ export default function LoginScreen() {
           Alert.alert("Authentication Error", error.message);
         }
       };
-  
+
       handleGoogleAuth();
     }
   }, [response]);
@@ -60,13 +59,12 @@ export default function LoginScreen() {
   const handleLogin = async () => {
     if (!email || !password) {
       alert("Please fill in all fields.");
-      return; 
+      return;
     }
     try {
       await signInWithEmailAndPassword(auth, email, password);
-      Alert.alert('Login Successful!', 'Welcome back!');
-      
-      // Get the current user's data
+      Alert.alert("Login Successful!", "Welcome back!");
+
       const uid = auth.currentUser?.uid;
       if (!uid) throw new Error("User not found");
 
@@ -74,7 +72,6 @@ export default function LoginScreen() {
 
       const userData = await getUser(uid) as { isAdmin: boolean };
 
-      // Check the isAdmin field to route appropriately
       if (userData.isAdmin) {
         router.push("/screens/cameras");
       } else {
@@ -152,24 +149,18 @@ export default function LoginScreen() {
           </Text>
         </View>
       </View>
-
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: { flex: 1, padding: 20, justifyContent: "center", backgroundColor: "#000" },
-  backButton: {position: "absolute",top: 50,left: 20,flexDirection: "row",alignItems: "center"},
+  backButton: { position: "absolute", top: 50, left: 20, flexDirection: "row", alignItems: "center" },
   backText: { color: "#fff", fontSize: 16, marginLeft: 5 },
   card: { backgroundColor: "#111", borderRadius: 8, padding: 20, elevation: 3 },
   header: { alignItems: "center", marginBottom: 20 },
   title: { fontSize: 24, fontWeight: "bold", color: "#fff" },
   description: { fontSize: 14, color: "#bbb" },
-  roleContainer: { flexDirection: "row", justifyContent: "center", marginBottom: 20 },
-  roleButton: { backgroundColor: "#222", padding: 15, marginHorizontal: 10, borderRadius: 8 },
-  selectedRole: { backgroundColor: "#444" },
-  roleText: { color: "#fff", fontSize: 16 },
-  icon: { fontSize: 18, marginRight: 5 },
   button: { padding: 15, borderRadius: 8, alignItems: "center", justifyContent: "center", flexDirection: "row" },
   outlineButton: { borderColor: "#ccc", borderWidth: 1, backgroundColor: "#222" },
   primaryButton: { backgroundColor: "#201c1c" },
@@ -183,6 +174,4 @@ const styles = StyleSheet.create({
   link: { color: "#4a90e2", textDecorationLine: "underline" },
   footer: { marginTop: 20, alignItems: "center" },
   footerText: { fontSize: 14, color: "#bbb" },
-  terms: { textAlign: "center", marginTop: 20, fontSize: 12, color: "#666" },
-  inlineContainer: { flexDirection: "row", justifyContent: "space-between", alignItems: "center" },
 });

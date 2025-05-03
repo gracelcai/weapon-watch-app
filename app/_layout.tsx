@@ -1,11 +1,9 @@
 import React, { useEffect, useState } from "react";
-import { Stack, useRouter, usePathname } from "expo-router";
+import { Stack, useRouter, usePathname, Slot } from "expo-router";
 import { View, TouchableOpacity, StyleSheet } from "react-native";
 import { FontAwesome5 } from "@expo/vector-icons";
-import * as Notifications from 'expo-notifications';
+import * as Notifications from "expo-notifications";
 import { NotificationProvider } from "@/context/NotificationContext";
-import { auth } from "../firebaseConfig";
-import { getUser } from "../services/firestore";
 
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
@@ -19,37 +17,28 @@ export default function RootLayout() {
   const router = useRouter();
   const pathname = usePathname(); // Get current page
   const isActive = (path: string) => pathname === path;
-  const [userData, setUserData] = useState<any>(null);
-  // Hide the bottom navigation bar on the home, login, and landing page
+  const [isMounted, setIsMounted] = useState(false);
+
+  // Hide the bottom navigation bar on specific pages
   const shouldShowNavBar = !["/", "/screens/settings", "/screens/login", "/screens/signup", "/screens/home", "/screens/notifications_student", "/screens/verification_transfer"].includes(pathname);
-
+  // useEffect(() => {
+  //   // Navigate to the home page (adjust the path if needed)
+  //   router.push("/screens/home");
+  // }, []);
   useEffect(() => {
-    // Navigate to the home page (adjust the path if needed)
-    router.push("/screens/home");
+    setIsMounted(true);
   }, []);
-  
-  /*
-  useEffect(() => {
-    const fetchUser = async () => {
-      const uid = auth.currentUser?.uid;
-      if (uid) {
-        try {
-          const data = await getUser(uid);
-          setUserData(data);
-        } catch (error) {
-          console.error("Error fetching user data:", error);
-        }
-      }
-    }; fetchUser();
-  }, []); */
 
-  // true only if userData exists and isVerifier is true
-  const isVerifier = userData?.isVerifier;
+  useEffect(() => {
+    if (isMounted && pathname === "/") {
+      router.push("/screens/home");
+    }
+  }, [isMounted, pathname]);
 
   return (
     <NotificationProvider>
-      <Stack screenOptions={{ headerShown: false }} />
-
+      {/* Render child routes */}
+      <Slot />
       {/* Show Bottom Navigation Bar only if not on home, login, or landing */}
       {shouldShowNavBar && (
         <View style={styles.navBar}>
@@ -61,18 +50,9 @@ export default function RootLayout() {
             <FontAwesome5 name="video" size={24} color={isActive("/screens/cameras") ? "#fff" : "#777"} />
           </TouchableOpacity>
 
-
           <TouchableOpacity onPress={() => router.push("/screens/verification")} style={styles.navItem}>
             <FontAwesome5 name="shield-alt" size={24} color={isActive("/screens/verification") ? "#fff" : "#777"} />
           </TouchableOpacity>
-        
-
-          {/*
-          {isVerifier && (
-          <TouchableOpacity onPress={() => router.push("/screens/verification")} style={styles.navItem}>
-            <FontAwesome5 name="shield-alt" size={24} color={pathname === "/screens/verification" ? "#fff" : "#777"} />
-          </TouchableOpacity>
-          )} */}
 
           <TouchableOpacity onPress={() => router.push("/screens/notifications_admin")} style={styles.navItem}>
             <FontAwesome5 name="bell" size={24} color={isActive("/screens/admin_notification_admin") ? "#fff" : "#777"} />

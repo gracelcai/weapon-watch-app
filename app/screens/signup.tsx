@@ -6,8 +6,9 @@ import { FontAwesome } from '@expo/vector-icons';
 import { useRouter } from "expo-router";
 import { useNotification } from '@/context/NotificationContext';
 import { signInWithGoogle, getUser, schoolExists } from "../../services/firestore";
-import { auth, db } from "../../firebaseConfig";
+import { auth, db, app } from "../../firebaseConfig";
 import { doc, setDoc } from "firebase/firestore";
+import { getAuth } from "firebase/auth";
 
 export default function SignUpScreen() {
   const router = useRouter();
@@ -52,7 +53,7 @@ export default function SignUpScreen() {
             await setDoc(doc(db, "users", uid), {
               name: auth.currentUser?.displayName || "",
               email: auth.currentUser?.email || "",
-              isAdmin: false, // Default to false (student/faculty). Adjust as needed.
+              isAdmin: isAdmin, // Default to false (student/faculty). Adjust as needed.
               schoolId: "",   // Optional: set a default or leave empty.
               createdAt: new Date(),
             });
@@ -74,7 +75,6 @@ export default function SignUpScreen() {
     }
   }, [response]);
 
-
   const handleSignUp = async () => {
     try {
       if (!name || !email || !password || !schoolId) {
@@ -90,6 +90,7 @@ export default function SignUpScreen() {
         );
         return;
       }
+      console.log("isAdmin at the time of sign-up:", isAdmin); // Debugging log
       await addUser(name, email, password, isAdmin, isVerifier, schoolId, expoPushToken);
       Alert.alert('Sign Up Successful!', 'Your account has been created.');
       router.push("/screens/login");
