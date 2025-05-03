@@ -6,7 +6,7 @@ import { initializeAuth, getAuth } from "firebase/auth";
 import { getReactNativePersistence } from '@firebase/auth/dist/rn/index.js';
 import ReactNativeAsyncStorage from "@react-native-async-storage/async-storage";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-
+import { getStorage } from "firebase/storage";
 
 // Extract Firebase configuration from Expo constants
 const {
@@ -33,7 +33,10 @@ const firebaseConfig = {
 // Initialize Firebase app (ensure it's only initialized once)
 const app =
 	getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0];
-console.log("Firebase app instance:", app);
+
+// Initialize Firebase Storage
+const storage = getStorage(app);
+
 // Initialize Firestore
 const db = getFirestore(app);
 
@@ -62,4 +65,4 @@ isSupported().then((supported) => {
 });
 
 // Export Firebase services
-export { auth, db, app };
+export { auth, db, app, storage };

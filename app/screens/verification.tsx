@@ -2,8 +2,39 @@ import React, { useEffect, useState } from "react";
 import { View, Text, ActivityIndicator, Image, TouchableOpacity, StyleSheet, Alert } from "react-native";
 import { useRouter } from "expo-router";
 import { doc, onSnapshot } from "firebase/firestore";
-import { auth, db } from "../../firebaseConfig";
+import { auth, db, storage } from "../../firebaseConfig";
 import { getUser } from "../../services/firestore";
+import { getDownloadURL, ref } from "firebase/storage";
+
+const ImageViewer = () => {
+  const [url, setUrl] = useState("");
+
+  useEffect(() => {
+    const fetchImage = async () => {
+      const imageRef = ref(storage, "frame_for_verifier.jpg"); // Adjust path if needed
+      try {
+        console.log("Fetching image...");
+        const downloadUrl = await getDownloadURL(imageRef);
+        console.log("Image URL fetched:", downloadUrl);
+        setUrl(downloadUrl);
+      } catch (err) {
+        console.error("Error fetching image:", err);
+      }
+    };
+  
+    fetchImage();
+  }, []);
+
+  return (
+    <View style={styles.imageViewerContainer}>
+      {url ? (
+        <Image source={{ uri: url }} style={styles.image} />
+      ) : (
+        <ActivityIndicator size="large" color="#fff" />
+      )}
+    </View>
+  );
+};
 
 export default function VerificationScreen() {
   const router = useRouter();
@@ -74,7 +105,8 @@ export default function VerificationScreen() {
       <Text style={styles.title}>Potential threat detected</Text>
 
       {/* Threat Image */}
-      <Image source={require("../../assets/images/shooter.avif")} style={styles.image} />
+      {/* <Image source={require("../../assets/images/shooter.avif")} style={styles.image} /> */}
+      <ImageViewer />
 
       {/* Action Buttons */}
       <TouchableOpacity style={styles.confirmButton} onPress={handleConfirmThreat}>
@@ -98,12 +130,21 @@ const styles = StyleSheet.create({
   loadingContainer: { flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: "#000" },
   title: { color: "#fff", fontSize: 20, fontWeight: "bold", marginBottom: 20 },
   title2: { color: "#fff", fontSize: 24, fontWeight: "bold", textAlign: "center", marginBottom: 10 },
-  image: { width: "100%", height: 300, resizeMode: "contain", marginBottom: 30 },
+  image: { width: "100%", width: 350, height: 300, resizeMode: "contain", marginBottom: 30 },
   confirmButton: { backgroundColor: "#D32F2F", padding: 15, width: "100%", alignItems: "center", borderRadius: 10, marginBottom: 10 },
   confirmButtonText: { color: "#fff", fontSize: 16, fontWeight: "bold" },
   falseButton: { backgroundColor: "#fff", padding: 15, width: "100%", alignItems: "center", borderRadius: 10 },
   falseButtonText: { color: "#000", fontSize: 16, fontWeight: "bold" },
   transferButton: { marginTop: 20, alignSelf: "center", paddingBottom: 20},
   transferButtonText: { color: "#fff", fontSize: 16},
-  msg: { color: "#fff", fontSize: 18, textAlign: "center" }
+  msg: { color: "#fff", fontSize: 18, textAlign: "center" },
+  imageViewerContainer: {
+    alignItems: "center",
+    justifyContent: "center",
+    marginVertical: 20,
+  },
+  loadingText: {
+    color: "#fff",
+    fontSize: 16,
+  },
 });
