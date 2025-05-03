@@ -18,36 +18,41 @@ import { collection, query, where, getDocs } from "firebase/firestore";
  * @returns {Promise<void>}
  */
 export const addUser = async (name, email, password, isAdmin, isVerifier, schoolId, expoPushToken) => {
+  let user; // Declare user outside the try block for cleanup in case of errors
   try {
-    /*
-    const auth = getAuth();
+    // Create a new user with email and password
     const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-    const user = userCredential.user; */
+    user = userCredential.user;
 
-    const { user } = await createUserWithEmailAndPassword(getAuth(), email, password);
-    
     // Update the user's display name in Firebase Auth
     await updateProfile(user, { displayName: name });
 
-    /* build the document references right here */
+    // Build the document references
     const userRef = doc(db, "users", user.uid);
     const schoolRef = doc(db, "schools", schoolId);
 
+    // Add user data to Firestore
     await setDoc(userRef, {
       name,
       email,
       schoolId,
       isAdmin: false,
       isVerifier: false,
-      createdAt: new Date()
+      expoPushToken: expoPushToken || null,
+      createdAt: new Date(),
     });
-  
-    /* push the ref into the school’s users array */
+
+    // Add the user reference to the school's users array
     await updateDoc(schoolRef, { users: arrayUnion(userRef) });
-    
+
     console.log("User successfully added:", user.uid);
   } catch (error) {
-    await deleteUser(user).catch(() => {});
+    // If an error occurs, delete the user to avoid orphaned accounts
+    if (user) {
+      await deleteUser(user).catch(() => {
+        console.error("Failed to delete user after error:", error);
+      });
+    }
     console.error("Error adding user:", error);
     throw error;
   }

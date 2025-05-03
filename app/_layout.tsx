@@ -21,7 +21,10 @@ export default function RootLayout() {
 
   // Hide the bottom navigation bar on specific pages
   const shouldShowNavBar = !["/", "/screens/settings", "/screens/login", "/screens/signup", "/screens/home", "/screens/notifications_student", "/screens/verification_transfer"].includes(pathname);
-
+  // useEffect(() => {
+  //   // Navigate to the home page (adjust the path if needed)
+  //   router.push("/screens/home");
+  // }, []);
   useEffect(() => {
     setIsMounted(true);
   }, []);
@@ -36,7 +39,6 @@ export default function RootLayout() {
     <NotificationProvider>
       {/* Render child routes */}
       <Slot />
-
       {/* Show Bottom Navigation Bar only if not on home, login, or landing */}
       {shouldShowNavBar && (
         <View style={styles.navBar}>

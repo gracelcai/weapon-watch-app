@@ -38,6 +38,7 @@ export default ({ config }) => ({
 			"expo-router",
 			"expo-font",
 			"expo-web-browser",
+			 "expo-secure-store",
 			[
 				"expo-splash-screen",
 				{

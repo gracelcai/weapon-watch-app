@@ -1,5 +1,14 @@
 import Constants from "expo-constants";
+import { initializeApp, getApps } from "firebase/app";
+import { getAnalytics, isSupported } from "firebase/analytics";
+import { getFirestore } from "firebase/firestore";
+import { initializeAuth, getAuth } from "firebase/auth";
+import { getReactNativePersistence } from '@firebase/auth/dist/rn/index.js';
+import ReactNativeAsyncStorage from "@react-native-async-storage/async-storage";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
+
+// Extract Firebase configuration from Expo constants
 const {
 	FIREBASE_API_KEY,
 	FIREBASE_AUTH_DOMAIN,
@@ -8,27 +17,9 @@ const {
 	FIREBASE_MESSAGING_SENDER_ID,
 	FIREBASE_APP_ID,
 	FIREBASE_MEASUREMENT_ID,
-} = Constants.expoConfig?.extra || {}; 
+} = Constants.expoConfig?.extra || {};
 
-// Import the functions you need from the SDKs you need
-// https://firebase.google.com/docs/web/setup#available-libraries
-
-import { initializeApp } from "firebase/app";
-import { getAnalytics, isSupported } from "firebase/analytics";
-import { getFirestore } from "firebase/firestore";
-// import { initializeAuth, getReactNativePersistence } from "firebase/auth";
-//Had to change it to this for it to work on android. Change it back if it doesn't work on ios
-// import { initializeAuth } from "@firebase/auth";
-import { getReactNativePersistence } from '@firebase/auth/dist/rn/index.js';
-// import { getAuth } from "@firebase/auth";
-// import { getReactNativePersistence } from "firebase/auth";
-import { initializeAuth } from "firebase/auth";
-// import { getReactNativePersistence } from "firebase/auth/react-native";
-import AsyncStorage from "@react-native-async-storage/async-storage";
-// import ReactNativeAsyncStorage from "@react-native-async-storage/async-storage";
-
-// Your web app's Firebase configuration
-// For Firebase JS SDK v7.20.0 and later, measurementId is optional
+// Firebase configuration object
 const firebaseConfig = {
 	apiKey: FIREBASE_API_KEY,
 	authDomain: FIREBASE_AUTH_DOMAIN,
@@ -39,27 +30,36 @@ const firebaseConfig = {
 	measurementId: FIREBASE_MEASUREMENT_ID,
 };
 
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);
-
+// Initialize Firebase app (ensure it's only initialized once)
+const app =
+	getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0];
+console.log("Firebase app instance:", app);
 // Initialize Firestore
 const db = getFirestore(app);
 
-// Initialize Auth
-
-// const auth = initializeAuth(app, {
-// 	persistence: getReactNativePersistence(ReactNativeAsyncStorage),
-// });
-// const auth = getAuth(app);
-const auth = initializeAuth(app, {
-	persistence: getReactNativePersistence(AsyncStorage)
-  });
+console.log("Before initializing Auth");
+let auth;
+try {
+    auth = initializeAuth(app, {
+        persistence: AsyncStorage,
+    });
+	// auth = initializeAuth(app, {
+	// 	persistence: getReactNativePersistence(AsyncStorage),
+	// });
+	// auth = getAuth(app);
+    console.log("Auth initialized successfully:", auth);
+} catch (error) {
+    console.error("Error initializing Auth:", error);
+}
+// 
+console.log("After initializing Auth");
+// Initialize Analytics if supported
 isSupported().then((supported) => {
 	if (supported) {
 		const analytics = getAnalytics(app);
-		// use analytics as needed
+		// Use analytics as needed
 	}
 });
 
-
+// Export Firebase services
 export { auth, db };
