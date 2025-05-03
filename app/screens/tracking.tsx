@@ -1,7 +1,9 @@
 import React, { useEffect, useState } from "react";
 import { View, Text, StyleSheet, Image, FlatList, Button } from "react-native";
 import MapView, { Marker, Circle, Polygon, Callout, Overlay } from "react-native-maps";
-import { getCameras, listenToCameras} from "/Users/neharajasekaran/weapon-watch-app/services/firestore.js"; 
+import { getCameras} from "/Users/neharajasekaran/weapon-watch-app/services/firestore.js"; 
+import { onSnapshot, collection,  } from "firebase/firestore";
+import { db } from "../../firebaseConfig";
 
 // Types
 type Camera = {
@@ -11,10 +13,10 @@ type Camera = {
   latitude: number;
   building: string;
   name: string;
-  coverageRadius: number; 
   floor: number;  // Updated to numeric floor
   id: string;
   roomID: string; 
+  shooter_detected: boolean;
 };
 
 type Floor = {
@@ -559,7 +561,38 @@ export default function TrackingPage() {
     latitudeDelta: 0.0008,
     longitudeDelta: 0.0008,
   });
-  
+
+
+  useEffect(() => {
+    // Create a listener to fetch the data from Firestore in real-time
+    const unsubscribe = onSnapshot(
+      collection(db, 'cameras'), // Firestore collection
+      (snapshot) => {
+        const camerasFromFirestore: Camera[] = snapshot.docs.map((doc) => {
+          const data = doc.data();
+          return {
+            id: doc.id,
+            name: data.name,
+            latitude: data.latitude,
+            longitude: data.longitude,
+            floor: data.floor,
+            roomID: data.roomID,
+            detected: data.detected, 
+            confirmed: data.confirmed,
+            building: data.building,
+            shooter_detected: data.shooter_detected,
+          };
+        });
+
+        // Update state with the real-time data
+        setCameraData(camerasFromFirestore);
+      }
+    );
+
+    // Clean up the listener when the component unmounts
+    return () => unsubscribe();
+  }, []); 
+
   // Fetch camera data when the component mounts
   useEffect(() => {
     const fetchCameras = async () => {
@@ -599,44 +632,14 @@ export default function TrackingPage() {
   };
 
 // Ensure it's a tuple: [southwest, northeast] format
-const overlayBounds: [[number, number], [number, number]] = [
-  [bounds.southEast.latitude, bounds.northWest.longitude],
-  [bounds.northWest.latitude, bounds.southEast.longitude]
-];
-
-const [selectedRoom, setSelectedRoom] = useState<any>(null);
+    const overlayBounds: [[number, number], [number, number]] = [
+      [bounds.southEast.latitude, bounds.northWest.longitude],
+      [bounds.northWest.latitude, bounds.southEast.longitude]
+    ];
 
 
-      const CameraMap = ({ cameraMap }: Props) => {
-        const [cameraData, setCameraData] = useState<Camera[]>([]);
-
-        useEffect(() => {
-          const unsubscribe = listenToCameras((cameras: Camera[]) => {
-            setCameraData(cameras);  // Update camera data on changes
-          });
-          return unsubscribe; // Cleanup listener
-        }, []);
-
-        const getPolygonColor = (roomId: string) => {
-          const camera = cameraData.find(camera => camera.roomID === roomId);  // Find the camera by room ID
-          return camera && camera.detected ? "red" : "blue";  // Change color based on detection
-        };
-      
-        const imageCenterLat = (bounds.southEast.latitude + bounds.northWest.latitude) / 2;
-        const imageCenterLng = (bounds.southEast.longitude + bounds.northWest.longitude) / 2
 
 
-      }
-
-      useEffect(() => {
-        if (selectedRoom) {
-          const timer = setTimeout(() => {
-            setSelectedRoom(null);
-          }, 3000);
-          return () => clearTimeout(timer); // cleanup if user taps a new room quickly
-        }
-      }, [selectedRoom]);
-  
   return (
     <View style={styles.container}>
       <View style={styles.mapContainer}>
@@ -650,35 +653,46 @@ const [selectedRoom, setSelectedRoom] = useState<any>(null);
             bounds={overlayBounds}
             image={floorImages[currentFloor.number]}
           />
-        {roomPolygons
-          .filter((room) => room.floor.number === currentFloor.number)
-          .map((room) => {
-            // Find the camera associated with this room
-            const camera = cameraData.find(
-              (cam) => cam.roomID === room.id // Assumes camera has a `roomId` field
-            );
+{roomPolygons
+  .filter((room) => room.floor.number === currentFloor.number)
+  .map((room) => {
+    // Find the camera associated with this room
+    const camera = cameraData.find(
+      (cam) => cam.roomID === room.id // Assumes camera has a `roomId` field
+    );
 
-            const detected = camera?.detected;
-            const fillColor = detected ? "rgba(255,0,0,0.3)" : "rgba(0,255,0,0.2)"; // Red if detected, blue otherwise
-            const handlePolygonPress = () => {
-              console.log(`Polygon clicked: ${room.name}`); // Assuming each room has a `name` property
-            };
-            return (
-              <Polygon
-                key={room.id}
-                coordinates={room.polygon.map((p) => toLatLng(p.x, p.y))}
-                strokeColor="white"
-                fillColor={fillColor}
-                strokeWidth={2}
-                zIndex={3}
-              />
-            );
-            
-          })}
+    // Get the detection state from the camera (check for null or undefined)
+    const detected = camera?.detected;
+
+    // Function to determine the polygon color based on detection status
+    const getPolygonColor = (camera: any) => {
+      if (camera?.shooter_detected || camera?.weapon_detected) {
+        return "rgba(255, 0, 0, 0.3)"; // Red if shooter or weapon detected
+      }
+      return "rgba(0, 255, 0, 0.2)"; // Green otherwise
+    };
+
+    // Get fill color using the updated function
+    const fillColor = getPolygonColor(camera);
+
+    const handlePolygonPress = () => {
+      console.log(`Polygon clicked: ${room.name}`); // Assuming each room has a `name` property
+    };
+
+    return (
+      <Polygon
+        key={room.id}
+        coordinates={room.polygon.map((p) => toLatLng(p.x, p.y))}
+        strokeColor="white"
+        fillColor={fillColor} // Apply the dynamic fill color based on detection
+        strokeWidth={2}
+        zIndex={3}
+        onPress={handlePolygonPress} // Optional: Handle polygon press
+      />
+    );
+  })}
 
           {/* Show room name as a Callout when a room is tapped */}
- 
-
           {cameraData.map((cam) => (
             <React.Fragment key={cam.id}>
               <Marker
@@ -718,16 +732,20 @@ const [selectedRoom, setSelectedRoom] = useState<any>(null);
         <View style={styles.cameraInfoGroup}>
           <Text style={styles.title}>Cameras:</Text>
           <FlatList
-            data={cameraData.filter((camera) => camera.floor === currentFloor.number)} // Filter cameras based on current floor
-            renderItem={({ item }) => (
-              <View style={styles.cameraContainer}>
-                <Text style={{ color: item.detected ? "red" : "green" }}>
-                  {item.name} - {item.detected ? "Detected" : "Not Detected"}
-                </Text>
-              </View>
-            )}
-            keyExtractor={(item) => item.id}
-          />
+              data={cameraData.filter((camera) => camera.floor === currentFloor.number)}
+              keyExtractor={(item) => item.id}
+              renderItem={({ item }) => {
+                const isThreatDetected = item.detected || item.shooter_detected;
+
+                return (
+                  <View style={styles.cameraContainer}>
+                    <Text style={{ color: isThreatDetected ? "red" : "green" }}>
+                      {item.name} : {item.roomID || "No Room ID"}
+                    </Text>
+                  </View>
+                );
+              }}
+            />
         </View>
       </View>
     </View>
@@ -744,4 +762,4 @@ const styles = StyleSheet.create({
   cameraInfoGroup: { flex: 1, paddingLeft: 8, justifyContent: "center", overflow: "scroll",},
   cameraContainer: { flexDirection: "row", marginBottom: 8, justifyContent: "flex-start" },
   cameraImage: { width: 40, height: 40, marginRight: 8, borderRadius: 50 },
-})
+});
