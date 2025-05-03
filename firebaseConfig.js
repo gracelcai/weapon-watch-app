@@ -40,12 +40,12 @@ const db = getFirestore(app);
 console.log("Before initializing Auth");
 let auth;
 try {
-    auth = initializeAuth(app, {
-        persistence: AsyncStorage,
-    });
-	// auth = initializeAuth(app, {
-	// 	persistence: getReactNativePersistence(AsyncStorage),
-	// });
+    // auth = initializeAuth(app, {
+    //     persistence: AsyncStorage,
+    // });
+	auth = initializeAuth(app, {
+		persistence: getReactNativePersistence(AsyncStorage),
+	});
 	// auth = getAuth(app);
     console.log("Auth initialized successfully:", auth);
 } catch (error) {
@@ -62,4 +62,4 @@ isSupported().then((supported) => {
 });
 
 // Export Firebase services
-export { auth, db };
+export { auth, db, app };

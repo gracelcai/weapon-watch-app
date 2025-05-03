@@ -6,8 +6,9 @@ import { FontAwesome } from '@expo/vector-icons';
 import { useRouter } from "expo-router";
 import { useNotification } from '@/context/NotificationContext';
 import { signInWithGoogle, getUser, schoolExists } from "../../services/firestore";
-import { auth, db } from "../../firebaseConfig";
+import { auth, db, app } from "../../firebaseConfig";
 import { doc, setDoc } from "firebase/firestore";
+import { getAuth } from "firebase/auth";
 
 export default function SignUpScreen() {
   const router = useRouter();
