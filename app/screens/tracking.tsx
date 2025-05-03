@@ -42,6 +42,11 @@ const floorImages: Record<number, any> = {
   3: require('../../assets/images/idea-factory-3.png'),
 };
 
+// 1: {
+//  southEast: { latitude: 38.99029118164155, longitude: -76.93799487382921 },
+//  northWest: { latitude: 38.99048332497971, longitude: -76.938594790733 },
+//},
+
 // Floor bounds
 const floorBounds = {
   1: {
@@ -148,10 +153,10 @@ const roomPolygons: Room[] = [
     name: "Bathrooms",
     floor: { number: 1, name: "First Floor" }, 
     polygon: [
-      { x: 0.30, y: 0.605 },
-      { x: 0.300, y: 0.820 },
-      { x: 0.475, y: 0.820 },
-      { x: 0.475, y: 0.605 }, 
+      { x: 0.30, y: 0.705 },
+      { x: 0.300, y: 0.920 },
+      { x: 0.475, y: 0.920 },
+      { x: 0.475, y: 0.705 }, 
     ],
   },
   {
@@ -170,10 +175,10 @@ const roomPolygons: Room[] = [
     name: "Room 1118",
     floor: { number: 1, name: "First Floor" }, 
     polygon: [
-      { x: 0.225, y: 0.605 },
-      { x: 0.225, y: 0.820 },
-      { x: 0.300, y: 0.820 },
-      { x: 0.300, y: 0.605 }, 
+      { x: 0.225, y: 0.705 },
+      { x: 0.225, y: 0.920 },
+      { x: 0.300, y: 0.920 },
+      { x: 0.300, y: 0.705 }, 
     ],
   },
   {
@@ -182,8 +187,8 @@ const roomPolygons: Room[] = [
     floor: { number: 1, name: "First Floor" }, 
     polygon: [
       { x: 0.018, y: 0.005 },
-      { x: 0.018, y: 0.318 },
-      { x: 0.086, y: 0.318 },
+      { x: 0.018, y: 0.490 },
+      { x: 0.086, y: 0.490 },
       { x: 0.086, y: 0.005 }, 
     ],
   },
@@ -192,10 +197,10 @@ const roomPolygons: Room[] = [
     name: "Room 1191",
     floor: { number: 1, name: "First Floor" }, 
     polygon: [
-      { x: 0.018, y: 0.605 },
-      { x: 0.018, y: 0.735 },
-      { x: 0.065, y: 0.735 },
-      { x: 0.065, y: 0.605 }, 
+      { x: 0.018, y: 0.705 },
+      { x: 0.018, y: 0.920 },
+      { x: 0.065, y: 0.920 },
+      { x: 0.065, y: 0.705 }, 
     ],
   },
   {
@@ -203,10 +208,10 @@ const roomPolygons: Room[] = [
     name: "Room 1192",
     floor: { number: 1, name: "First Floor" }, 
     polygon: [
-      { x: 0.065, y: 0.605 },
-      { x: 0.065, y: 0.820 },
-      { x: 0.115, y: 0.820 },
-      { x: 0.115, y: 0.605 }, 
+      { x: 0.065, y: 0.705 },
+      { x: 0.065, y: 0.920 },
+      { x: 0.115, y: 0.920 },
+      { x: 0.115, y: 0.705 }, 
     ],
   },
   {
@@ -214,43 +219,34 @@ const roomPolygons: Room[] = [
     name: "West Stairwell",
     floor: { number: 1, name: "First Floor" }, 
     polygon: [
-      { x: 0.115, y: 0.605 },
-      { x: 0.115, y: 0.820 },
-      { x: 0.225, y: 0.820 },
-      { x: 0.225, y: 0.605 }, 
+      { x: 0.115, y: 0.705 },
+      { x: 0.115, y: 0.920 },
+      { x: 0.225, y: 0.920 },
+      { x: 0.225, y: 0.705 }, 
     ],
   },
-  {
-    id: "elevator-w1",
-    name: "West Elevator",
-    floor: { number: 1, name: "First Floor" }, 
-    polygon: [
-      { x: 0.115, y: 0.605 },
-      { x: 0.115, y: 0.820 },
-      { x: 0.225, y: 0.820 },
-      { x: 0.225, y: 0.605 }, 
-    ],
-  },
+ 
   {
     id: "room-1195",
     name: "Main Stairs",
     floor: { number: 1, name: "First Floor" }, 
     polygon: [
-      { x: 0.460 , y: 0.535 },
-      { x: 0.460 , y: 0.325 },
+      { x: 0.360 , y: 0.535 },
+      { x: 0.360 , y: 0.325 },
       { x: 0.625 , y: 0.325 },
       { x: 0.625 , y: 0.535 },
     ],
   },
+  
   {
     id: "room-1196",
     name: "Room 1196",
     floor: { number: 1, name: "First Floor" }, 
     polygon: [
-      { x: 0.475, y: 0.605 },
-      { x: 0.475, y: 0.820 },
-      { x: 0.510, y: 0.820 },
-      { x: 0.510, y: 0.605 }, 
+      { x: 0.475, y: 0.705 },
+      { x: 0.475, y: 0.920 },
+      { x: 0.510, y: 0.920 },
+      { x: 0.510, y: 0.705 }, 
     ],
   },
   {
@@ -259,20 +255,31 @@ const roomPolygons: Room[] = [
     floor: { number: 1, name: "First Floor" }, 
     polygon: [
       { x: 0.510, y: 0.675 },
-      { x: 0.510, y: 0.820 },
-      { x: 0.624, y: 0.820 },
+      { x: 0.510, y: 0.920 },
+      { x: 0.624, y: 0.920 },
       { x: 0.624, y: 0.675 }, 
     ],
   },
   {
-    id: "elevator-e1",
+    id: "hallway-right",
     name: "East Elevator",
     floor: { number: 1, name: "First Floor" }, 
     polygon: [
-      { x: 0.510, y: 0.535 },
-      { x: 0.510, y: 0.675 },
+      { x: 0.310, y: 0.535 },
+      { x: 0.310, y: 0.675 },
       { x: 0.624, y: 0.675 },
       { x: 0.624, y: 0.535 }, 
+    ],
+  },
+  {
+    id: "window-hallway",
+    name: "window-hallway",
+    floor: { number: 1, name: "First Floor" }, 
+    polygon: [
+      { x: 0.010, y: 0.480 },
+      { x: 0.010, y: 0.7 },
+      { x: 0.324, y: 0.7 },
+      { x: 0.324, y: 0.480 }, 
     ],
   },
   {
@@ -537,6 +544,8 @@ interface Coordinate {
   longitude: number;
 }
 
+const [tappedCoordinates, setTappedCoordinates] = useState(null);
+
 export default function TrackingPage() {
   const [cameraData, setCameraData] = useState<Camera[]>([]);
   const [currentFloor, setCurrentFloor] = useState<Floor>({
@@ -590,16 +599,13 @@ export default function TrackingPage() {
   };
 
 // Ensure it's a tuple: [southwest, northeast] format
-      const overlayBounds: [Coordinate, Coordinate] = [
-        {
-          latitude: bounds.southEast.latitude, // South
-          longitude: bounds.northWest.longitude, // West
-        },
-        {
-          latitude: bounds.northWest.latitude, // North
-          longitude: bounds.southEast.longitude, // East
-        }
-      ];
+const overlayBounds: [[number, number], [number, number]] = [
+  [bounds.southEast.latitude, bounds.northWest.longitude],
+  [bounds.northWest.latitude, bounds.southEast.longitude]
+];
+
+const [selectedRoom, setSelectedRoom] = useState<any>(null);
+
 
       const CameraMap = ({ cameraMap }: Props) => {
         const [cameraData, setCameraData] = useState<Camera[]>([]);
@@ -621,6 +627,15 @@ export default function TrackingPage() {
 
 
       }
+
+      useEffect(() => {
+        if (selectedRoom) {
+          const timer = setTimeout(() => {
+            setSelectedRoom(null);
+          }, 3000);
+          return () => clearTimeout(timer); // cleanup if user taps a new room quickly
+        }
+      }, [selectedRoom]);
   
   return (
     <View style={styles.container}>
@@ -630,6 +645,11 @@ export default function TrackingPage() {
           region={mapRegion}
           onRegionChangeComplete={(region) => setMapRegion(region)}
         >
+        <Overlay
+            key={floorImages[currentFloor.number]} // 👈 use the image URL or floor name as a unique key
+            bounds={overlayBounds}
+            image={floorImages[currentFloor.number]}
+          />
         {roomPolygons
           .filter((room) => room.floor.number === currentFloor.number)
           .map((room) => {
@@ -651,12 +671,13 @@ export default function TrackingPage() {
                 fillColor={fillColor}
                 strokeWidth={2}
                 zIndex={3}
-                onPress={handlePolygonPress} // Add onPress event here
-                
               />
             );
+            
           })}
-        
+
+          {/* Show room name as a Callout when a room is tapped */}
+ 
 
           {cameraData.map((cam) => (
             <React.Fragment key={cam.id}>

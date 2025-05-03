@@ -184,6 +184,7 @@ export const updateCamera = async (cameraId, updatedData) => {
       coverageRadius: updatedData.coverageRadius,
       floor: updatedData.floor,
       roomID: updatedData.roomID,
+      shooter_detected: updatedData.shooter_detected
     });
     console.log(`Camera with ID ${cameraId} updated successfully.`);
   } catch (error) {
@@ -226,7 +227,8 @@ export async function getCameras() {
         name: data.name ?? "",               // Default to empty string if missing
         coverageRadius: data.coverageRadius ?? 50,  // Default to 50 if missing
         floor: data.floor ?? 1,              // Default to 1 if missing
-        roomID: data.roomID
+        roomID: data.roomID, 
+        shooter_detected: data.shooter_detected
       };
     });
     return cameras;  // Return the array of cameras with proper defaults
