@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { View, Text, StyleSheet, Image, FlatList, Button } from "react-native";
 import MapView, { Marker, Circle, Polygon, Callout, Overlay } from "react-native-maps";
-import { getCameras} from "/Users/neharajasekaran/weapon-watch-app/services/firestore.js"; 
+import { getCameras} from "../../services/firestore.js"; 
 import { onSnapshot, collection,  } from "firebase/firestore";
 import { db } from "../../firebaseConfig";
 
