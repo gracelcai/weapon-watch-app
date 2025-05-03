@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { View, Text, StyleSheet, Image, FlatList, Button } from "react-native";
 import MapView, { Marker, Circle, Polygon, Callout, Overlay } from "react-native-maps";
 import { getCameras} from "../../services/firestore.js"; 
-import { onSnapshot, collection,  } from "firebase/firestore";
+import { onSnapshot, collection, doc} from "firebase/firestore";
 import { db } from "../../firebaseConfig";
 
 // Types
@@ -73,6 +73,18 @@ interface Props {
 
 const roomPolygons: Room[] = [
   // FLOOR ONE 11111111
+  {
+    id: "outside",
+    name: "outside",
+    floor: { number: 1, name: "First Floor" },  // Updated with floor number and name, 
+    polygon: [
+      { x: 0, y: 0.930 },
+      { x: 0.018, y: 0.930},
+      { x: 0.018, y: 0},
+      { x: 0, y: 0.0},
+    ], // counterclockwise from top left
+  },
+
   {
     id: "room-1101",
     name: "Room 1101",
@@ -566,7 +578,7 @@ export default function TrackingPage() {
   useEffect(() => {
     // Create a listener to fetch the data from Firestore in real-time
     const unsubscribe = onSnapshot(
-      collection(db, 'cameras'), // Firestore collection
+      collection(doc(db, "schools", "UMD"), "cameras"),
       (snapshot) => {
         const camerasFromFirestore: Camera[] = snapshot.docs.map((doc) => {
           const data = doc.data();
