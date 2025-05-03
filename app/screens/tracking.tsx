@@ -78,7 +78,7 @@ const roomPolygons: Room[] = [
     ], // counterclockwise from top left
   },
   {
-    id: "room-1101A/B",
+    id: "room-1101AB",
     name: "Room 1101A/B",
     floor: { number: 1, name: "First Floor" }, 
       polygon: [
@@ -89,7 +89,7 @@ const roomPolygons: Room[] = [
     ],
   },
   {
-    id: "room-1101C/E",
+    id: "room-1101CE",
     name: "Room 1101C/E",
     floor: { number: 1, name: "First Floor" }, 
     polygon: [
@@ -177,7 +177,7 @@ const roomPolygons: Room[] = [
     ],
   },
   {
-    id: "room-1129/A/B/C",
+    id: "room-1129ABC",
     name: "Room 1129/A/B/C",
     floor: { number: 1, name: "First Floor" }, 
     polygon: [
@@ -311,7 +311,7 @@ const roomPolygons: Room[] = [
     ],
   },
   {
-    id: "room-3110/2/4/5",
+    id: "room-3110245",
     name: "Bathrooms",
     floor: { number: 3, name: "Third Floor" }, 
     polygon: [
@@ -377,7 +377,7 @@ const roomPolygons: Room[] = [
     ],
   },
   {
-    id: "room-3119C/D",
+    id: "room-3119CD",
     name: "RAL Room C/D",
     floor: { number: 3, name: "Third Floor" }, 
     polygon: [
@@ -388,7 +388,7 @@ const roomPolygons: Room[] = [
     ],
   },
   {
-    id: "room-3119F/E",
+    id: "room-3119FE",
     name: "RAL Room F/E",
     floor: { number: 3, name: "Third Floor" }, 
     polygon: [
@@ -640,7 +640,9 @@ export default function TrackingPage() {
 
             const detected = camera?.detected;
             const fillColor = detected ? "rgba(255,0,0,0.3)" : "rgba(0,255,0,0.2)"; // Red if detected, blue otherwise
-
+            const handlePolygonPress = () => {
+              console.log(`Polygon clicked: ${room.name}`); // Assuming each room has a `name` property
+            };
             return (
               <Polygon
                 key={room.id}
@@ -649,6 +651,8 @@ export default function TrackingPage() {
                 fillColor={fillColor}
                 strokeWidth={2}
                 zIndex={3}
+                onPress={handlePolygonPress} // Add onPress event here
+                
               />
             );
           })}
