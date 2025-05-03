@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, ActivityIndicator } from "react-native";
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert } from "react-native";
 import * as Google from "expo-auth-session/providers/google";
 import { useRouter } from "expo-router";
 import { FontAwesome } from "@expo/vector-icons";
@@ -12,7 +12,6 @@ export default function LoginScreen() {
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [loading, setLoading] = useState(true);
 
   // Set up Google authentication request with client IDs.
   const [request, response, promptAsync] = Google.useAuthRequest({
@@ -21,22 +20,6 @@ export default function LoginScreen() {
     androidClientId: "YOUR_ANDROID_CLIENT_ID",
     webClientId: "YOUR_WEB_CLIENT_ID",
   });
-
-  // Simulate Firebase Auth initialization
-  useEffect(() => {
-    const initializeAuth = async () => {
-      try {
-        // Simulate a delay for Firebase Auth initialization
-        await new Promise((resolve) => setTimeout(resolve, 1000)); // Replace with actual initialization check if needed
-        setLoading(false); // Auth is ready
-      } catch (error) {
-        console.error("Error initializing Firebase Auth:", error);
-        Alert.alert("Error", "Failed to initialize authentication.");
-      }
-    };
-
-    initializeAuth();
-  }, []);
 
   // Handle Google auth response
   useEffect(() => {
@@ -91,15 +74,6 @@ export default function LoginScreen() {
   const handleGoogleLogin = () => {
     promptAsync();
   };
-
-  if (loading) {
-    return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#fff" />
-        <Text style={styles.loadingText}>Initializing...</Text>
-      </View>
-    );
-  }
 
   return (
     <View style={styles.container}>
@@ -170,8 +144,6 @@ export default function LoginScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, padding: 20, justifyContent: "center", backgroundColor: "#000" },
-  loadingContainer: { flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: "#000" },
-  loadingText: { color: "#fff", marginTop: 10 },
   backButton: { position: "absolute", top: 50, left: 20, flexDirection: "row", alignItems: "center" },
   backText: { color: "#fff", fontSize: 16, marginLeft: 5 },
   card: { backgroundColor: "#111", borderRadius: 8, padding: 20, elevation: 3 },

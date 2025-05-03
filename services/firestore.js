@@ -36,7 +36,7 @@ export const addUser = async (name, email, password, isAdmin, isVerifier, school
       name,
       email,
       schoolId,
-      isAdmin: false,
+      isAdmin: isAdmin,
       isVerifier: false,
       expoPushToken: expoPushToken || null,
       createdAt: new Date(),

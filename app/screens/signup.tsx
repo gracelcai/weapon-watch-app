@@ -53,7 +53,7 @@ export default function SignUpScreen() {
             await setDoc(doc(db, "users", uid), {
               name: auth.currentUser?.displayName || "",
               email: auth.currentUser?.email || "",
-              isAdmin: false, // Default to false (student/faculty). Adjust as needed.
+              isAdmin: isAdmin, // Default to false (student/faculty). Adjust as needed.
               schoolId: "",   // Optional: set a default or leave empty.
               createdAt: new Date(),
             });
@@ -75,7 +75,6 @@ export default function SignUpScreen() {
     }
   }, [response]);
 
-
   const handleSignUp = async () => {
     try {
       if (!name || !email || !password || !schoolId) {
@@ -91,6 +90,7 @@ export default function SignUpScreen() {
         );
         return;
       }
+      console.log("isAdmin at the time of sign-up:", isAdmin); // Debugging log
       await addUser(name, email, password, isAdmin, isVerifier, schoolId, expoPushToken);
       Alert.alert('Sign Up Successful!', 'Your account has been created.');
       router.push("/screens/login");
