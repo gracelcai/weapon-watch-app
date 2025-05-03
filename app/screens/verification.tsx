@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { View, Text, ActivityIndicator, Image, TouchableOpacity, StyleSheet, Alert } from "react-native";
 import { useRouter } from "expo-router";
-import { doc, onSnapshot, getDoc } from "firebase/firestore";
+import { doc, onSnapshot, getDoc, updateDoc } from "firebase/firestore";
 import { auth, db } from "../../firebaseConfig";
 import { getUser } from "../../services/firestore";
 import { updateConfirmThreat } from '../../services/firestore';
@@ -10,37 +10,36 @@ async function sendPushNotification(isAdmin: boolean, expoPushToken: string) {
   const message = {
     to: expoPushToken,
     sound: 'emergencysos.wav',
-    title: 'Default',
-    body: 'Admin notif',
+    title: 'ACTIVE THREAT',
+    body: isAdmin ? 'Officers en-route. All faculty must secure classrooms: lock/barricade doors, call 911 with updates (location, description), and account for all students via attendance rosters' : 'Shelter-in-place order in effect. Stay inside your current room, lock/barricade the door, turn off lights, move away from windows, and silence all devices. Do not open doors for anyone until you hear the official ALL-CLEAR.',
     data: { url: 'screens/notifications_student' },
-    channelId: 'weapon_detected', 
+    channelId: 'weapon_detected',
     sticky: true,
     priority: 'high',
   };
-  if (isAdmin){
-    const message = {
-      to: expoPushToken,
-      sound: 'emergencysos.wav',
-      title: 'Weapon Detected!',
-      body: 'Admin notif',
-      data: { url: 'screens/notifications_student' },
-      channelId: 'weapon_detected', 
-      sticky: true,
-      priority: 'high',
-    };
-  }
-  else{
-    const message = {
-      to: expoPushToken,
-      sound: 'emergencysos.wav',
-      title: 'Weapon Detected!',
-      body: 'Student Admin',
-      data: { url: 'screens/notifications_student' },
-      channelId: 'weapon_detected', 
-      sticky: true,
-      priority: 'high',
-    };
-  }
+
+  await fetch('https://exp.host/--/api/v2/push/send', {
+    method: 'POST',
+    headers: {
+      Accept: 'application/json',
+      'Accept-encoding': 'gzip, deflate',
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(message),
+  });
+}
+
+async function sendPushNotificationVerifier(expoPushToken: string) {
+  const message = {
+    to: expoPushToken,
+    sound: 'emergencysos.wav',
+    title: 'ACTIVE THREAT DETECTED',
+    body: 'Confirm Active Threat Event',
+    data: { url: 'screens/verification' },
+    channelId: 'weapon_detected',
+    sticky: true,
+    priority: 'high',
+  };
 
   await fetch('https://exp.host/--/api/v2/push/send', {
     method: 'POST',
@@ -64,21 +63,40 @@ async function handleConfirmThreat() {
   for (const userRef of userRefs) {
     const userSnap = await getDoc(userRef);
     if (userSnap.exists()) {
-      const userData = userSnap.data() as { expoPushToken: string };
-      const isAdmin = userSnap.data() as { isAdmin: boolean };
+      const userData = userSnap.data() as any;
       if (userData.expoPushToken) {
-        console.log(isAdmin.isAdmin);
-        sendPushNotification(isAdmin.isAdmin, userData.expoPushToken);
+        sendPushNotification(userData.isAdmin, userData.expoPushToken);
       }
     }
   }
   // Add API call to notify security team
 };
 
+
 export default function VerificationScreen() {
   const router = useRouter();
   // allowed will be true if user can see the screen, false if not, and null while checking.
   const [allowed, setAllowed] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    const docRef = doc(db, "schools", "UMD");
+
+    const unsubscribe = onSnapshot(docRef, async (snapshot) => {
+      const data = snapshot.data();
+      const detectedCamId = data?.detected_cam_id;
+      const uid = auth.currentUser?.uid;
+      const userData = await getUser(uid) as any;
+
+      if (detectedCamId && detectedCamId.trim() !== "") {
+        // Trigger your desired action here
+        sendPushNotificationVerifier(userData.expoPushToken)
+        // For example, navigate to a different screen or display an alert
+      }
+    });
+
+    // Cleanup the listener when the component unmounts
+    return () => unsubscribe();
+  }, []);
 
   useEffect(() => {
     const checkUserVerification = async () => {
@@ -106,12 +124,15 @@ export default function VerificationScreen() {
       }
     };
 
+
     checkUserVerification();
+
   }, [router]);
 
   const handleFalseAlert = () => {
     alert("False alarm reported.");
     updateConfirmThreat('UMD', {'Active Event': false})
+    updateDoc(doc(db, 'schools', "UMD"), {'detected_cam_id': ""});
     // Add API call to log false alert
   };
 

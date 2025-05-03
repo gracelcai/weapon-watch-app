@@ -60,17 +60,17 @@ import "dotenv/config";
             ]
           }
         ],
-        [
-          "expo-video",
-          {
-            "ios": {
-                "includeVLCKit": false
-            },
-            "android": {
-                "legacyJetifier": false
-            }
-          }
-        ]
+        // [
+        //   "expo-video",
+        //   {
+        //     "ios": {
+        //         "includeVLCKit": false
+        //     },
+        //     "android": {
+        //         "legacyJetifier": false
+        //     }
+        //   }
+        // ]
       ],
       experiments: {
         typedRoutes: true

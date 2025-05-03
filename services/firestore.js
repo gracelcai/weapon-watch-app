@@ -20,16 +20,7 @@ import { collection, query, where, getDocs } from "firebase/firestore";
 export const addUser = async (name, email, password, isAdmin, isVerifier, schoolId, expoPushToken) => {
   const { user } = await createUserWithEmailAndPassword(getAuth(), email, password);
   try {
-    // Create a new user with email and password
-    const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-    const user = userCredential.user; */
-
-    
-    
-    // Update the user's display name in Firebase Auth
-    await updateProfile(user, { displayName: name });
-
-    // Build the document references
+ 
     const userRef = doc(db, "users", user.uid);
     const schoolRef = doc(db, "schools", schoolId);
 
