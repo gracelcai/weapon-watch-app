@@ -1,5 +1,5 @@
 import { createUserWithEmailAndPassword, updateProfile, deleteUser, getAuth } from "firebase/auth";
-import { auth, db } from "../firebaseConfig";
+import { auth, db, database } from "../firebaseConfig";
 import { doc, setDoc, updateDoc, getDoc, runTransaction, arrayUnion,} from "firebase/firestore";
 import { signInWithCredential, GoogleAuthProvider } from "firebase/auth";
 import { collection, query, where, getDocs } from "firebase/firestore";
@@ -183,43 +183,71 @@ export const addCamera = async (cameraId, cameraData) => {
 };
 
 
-/**
- * Retrieves any data from Firestore for the given id.
- * @param {string} collection - The root collection.
- * @param {string} id - The ID.
- * @returns {Promise<Object>} - A promise that resolves to the user data object.
- * @throws Will throw an error if the document does not exist.
- */
-export const getData = async (collection, id) => {
-  const DocRef = doc(db, collection, id);
-  const DocSnap = await getDoc(DocRef);
-  if (DocSnap.exists()) {
-    return DocSnap.data();
-  } else {
-    throw new Error("Collection, ID, or data not found in Firestore.");
+export const updateCamera = async (cameraId, updatedData) => {
+  try {
+    await updateDoc(doc(database, 'cameras', cameraId), {
+      confirmed: updatedData.confirmed,
+      detected: updatedData.detected,
+      longitude: updatedData.longitude,
+      latitude: updatedData.latitude,
+      building: updatedData.building,
+      name: updatedData.name,
+      coverageRadius: updatedData.coverageRadius,
+      floor: updatedData.floor,
+      roomID: updatedData.roomID,
+      shooter_detected: updatedData.shooter_detected
+    });
+    console.log(`Camera with ID ${cameraId} updated successfully.`);
+  } catch (error) {
+    console.error('Error updating camera: ', error);
   }
 };
 
+export function listenToCameras(callback) {
+  const camerasCollectionRef = collection(doc(db, "schools", "UMD"), "cameras");
 
+  const unsubscribe = onSnapshot(camerasCollectionRef, (snapshot) => {
+    const cameras = snapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data(),
+    }));
+
+    callback(cameras);
+  });
+
+  return unsubscribe; 
+};
 
 /**
  * Fetches all camera documents from the "cameras" collection in Firestore.
  *
  * @returns {Promise<Array<Object>>} An array of camera objects including their ID.
  */
-export const getCameras = async () => {
+export async function getCameras() {
   try {
-    const snapshot = await getDocs(collection(db, "cameras"));
-    const camerasArray = snapshot.docs.map(doc => ({
-      id: doc.id,
-      ...doc.data()
-    }));
-    return camerasArray;
+    const snapshot = await getDocs(collection(doc(db, "schools", "UMD"), "cameras"));
+    const cameras = snapshot.docs.map(doc => {
+      const data = doc.data();
+      return {
+        id: doc.id,  // Use Firestore document ID as the unique key
+        confirmed: data.confirmed ?? false,  // Default to false if missing
+        detected: data.detected ?? false,    // Default to false if missing
+        longitude: data.longitude ?? 0,      // Default to 0 if missing
+        latitude: data.latitude ?? 0,        // Default to 0 if missing
+        building: data.building ?? "",       // Default to empty string if missing
+        name: data.name ?? "",               // Default to empty string if missing
+        coverageRadius: data.coverageRadius ?? 50,  // Default to 50 if missing
+        floor: data.floor ?? 1,              // Default to 1 if missing
+        roomID: data.roomID, 
+        shooter_detected: data.shooter_detected
+      };
+    });
+    return cameras;  // Return the array of cameras with proper defaults
   } catch (error) {
-    console.error("Error fetching cameras:", error);
-    throw error;
+    console.error("FROM FIRESTORE Error fetching cameras:", error);
+    return [];  // Return an empty array on error to avoid crashing map()
   }
-};
+}
 
 /**
  * Fetch all cameras that belong to the signed-in user’s school.

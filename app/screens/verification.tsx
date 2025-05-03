@@ -161,7 +161,8 @@ export default function VerificationScreen() {
       <Text style={styles.title}>Potential threat detected</Text>
 
       {/* Threat Image */}
-      <Image source={require("../../assets/images/shooter.avif")} style={styles.image} />
+      {/* <Image source={require("../../assets/images/shooter.avif")} style={styles.image} /> */}
+      <ImageViewer />
 
       {/* Action Buttons */}
       <TouchableOpacity style={styles.confirmButton} onPress={async () => { await handleConfirmThreat();}}>
@@ -185,12 +186,21 @@ const styles = StyleSheet.create({
   loadingContainer: { flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: "#000" },
   title: { color: "#fff", fontSize: 20, fontWeight: "bold", marginBottom: 20 },
   title2: { color: "#fff", fontSize: 24, fontWeight: "bold", textAlign: "center", marginBottom: 10 },
-  image: { width: "100%", height: 300, resizeMode: "contain", marginBottom: 30 },
+  image: { width: "100%", width: 350, height: 300, resizeMode: "contain", marginBottom: 30 },
   confirmButton: { backgroundColor: "#D32F2F", padding: 15, width: "100%", alignItems: "center", borderRadius: 10, marginBottom: 10 },
   confirmButtonText: { color: "#fff", fontSize: 16, fontWeight: "bold" },
   falseButton: { backgroundColor: "#fff", padding: 15, width: "100%", alignItems: "center", borderRadius: 10 },
   falseButtonText: { color: "#000", fontSize: 16, fontWeight: "bold" },
   transferButton: { marginTop: 20, alignSelf: "center", paddingBottom: 20},
   transferButtonText: { color: "#fff", fontSize: 16},
-  msg: { color: "#fff", fontSize: 18, textAlign: "center" }
+  msg: { color: "#fff", fontSize: 18, textAlign: "center" },
+  imageViewerContainer: {
+    alignItems: "center",
+    justifyContent: "center",
+    marginVertical: 20,
+  },
+  loadingText: {
+    color: "#fff",
+    fontSize: 16,
+  },
 });

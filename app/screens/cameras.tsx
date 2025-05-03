@@ -5,17 +5,21 @@ import { Picker } from "@react-native-picker/picker";
 import { useRouter } from "expo-router";
 import { getCameras, getCamerasSchool, getUser } from "../../services/firestore";
 import { auth, db } from "../../firebaseConfig";
+import Video from "react-native-video";
 
 /*
 // CameraFeed component: shows the live feed given an RTSP URL.
 function CameraFeed({ rtspUrl }: { rtspUrl: string }) {
   return (
-    <VLCPlayer
-      source={{ uri: rtspUrl }}
-      style={styles.cameraFeed}
-      autoplay={true}
-      resizeMode="contain"
-    />
+    // <VLCPlayer
+    //   source={{ uri: rtspUrl }}
+    //   style={styles.cameraFeed}
+    //   autoplay={true}
+    //   resizeMode="contain"
+    // />
+    <View style={[styles.cameraFeed, { backgroundColor: "red" }]}>
+      <Text style={{ color: "white" }}>RTSP URL: {rtspUrl} (not implemented)</Text>
+    </View>
   );
 }
 */
