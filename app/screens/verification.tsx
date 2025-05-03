@@ -7,35 +7,15 @@ import { getUser } from "../../services/firestore";
 import { updateConfirmThreat } from '../../services/firestore';
 import { getDownloadURL, ref } from "firebase/storage";
 
-const ImageViewer = () => {
-  const [url, setUrl] = useState("");
-
-  useEffect(() => {
-    const fetchImage = async () => {
-      const imageRef = ref(storage, "frame_for_verifier.jpg"); // Adjust path if needed
-      try {
-        console.log("Fetching image...");
-        const downloadUrl = await getDownloadURL(imageRef);
-        console.log("Image URL fetched:", downloadUrl);
-        setUrl(downloadUrl);
-      } catch (err) {
-        console.error("Error fetching image:", err);
-      }
-    };
-  
-    fetchImage();
-  }, []);
-
-  return (
-    <View style={styles.imageViewerContainer}>
-      {url ? (
-        <Image source={{ uri: url }} style={styles.image} />
-      ) : (
-        <ActivityIndicator size="large" color="#fff" />
-      )}
-    </View>
-  );
-};
+const ImageViewer = ({ url }: { url: string }) => (
+  <View style={styles.imageViewerContainer}>
+    {url ? (
+      <Image source={{ uri: url }} style={styles.image} />
+    ) : (
+      <ActivityIndicator size="large" color="#fff" />
+    )}
+  </View>
+);
 
 async function sendPushNotification(isAdmin: boolean, expoPushToken: string) {
   const message = {
@@ -110,6 +90,7 @@ export default function VerificationScreen() {
   const router = useRouter();
   // allowed will be true if user can see the screen, false if not, and null while checking.
   const [allowed, setAllowed] = useState<boolean | null>(null);
+  const [imageUrl, setImageUrl] = useState<string>("");
 
   useEffect(() => {
     const docRef = doc(db, "schools", "UMD");
@@ -122,8 +103,15 @@ export default function VerificationScreen() {
 
       if (detectedCamId && detectedCamId.trim() !== "") {
         // Trigger your desired action here
-        console.log("Detected camera ID:", userData.expoPushToken);
-        sendPushNotificationVerifier(userData.expoPushToken)
+        try {
+          const imageRef = ref(storage, "frame_for_verifier.jpg");
+          const downloadUrl = await getDownloadURL(imageRef);
+          setImageUrl(downloadUrl); // update state → re-render ImageViewer :contentReference[oaicite:1]{index=1}
+        } catch (err) {
+          console.error("Error fetching image:", err);
+        }
+        sendPushNotificationVerifier(userData.expoPushToken);
+        
         // For example, navigate to a different screen or display an alert
       }
     });
@@ -196,7 +184,7 @@ export default function VerificationScreen() {
 
       {/* Threat Image */}
       {/* <Image source={require("../../assets/images/shooter.avif")} style={styles.image} /> */}
-      <ImageViewer />
+      <ImageViewer url={imageUrl}/>
 
       {/* Action Buttons */}
       <TouchableOpacity style={styles.confirmButton} onPress={async () => { await handleConfirmThreat();}}>
