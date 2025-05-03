@@ -86,7 +86,10 @@ import 'dotenv/config';
         FIREBASE_APP_ID: process.env.FIREBASE_APP_ID,
         FIREBASE_MEASUREMENT_ID: process.env.FIREBASE_MEASUREMENT_ID,
       },
-      owner: "keguida"
+      owner: "keguida",
+      notification: {
+      "vapidPublicKey": "BJJEqGV-QQXXOXC_CPHlhsiCExoJ9cK_SyfTD6IHtBDzdqENphngRtIC6TQ8FA06WgLsNpbH5xPEDf4v_edyD1E"
+    }
     }
   }
   );

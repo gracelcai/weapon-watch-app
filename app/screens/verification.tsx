@@ -6,17 +6,41 @@ import { auth, db } from "../../firebaseConfig";
 import { getUser } from "../../services/firestore";
 import { updateConfirmThreat } from '../../services/firestore';
 
-async function sendPushNotification(expoPushToken: string) {
+async function sendPushNotification(isAdmin: boolean, expoPushToken: string) {
   const message = {
     to: expoPushToken,
     sound: 'emergencysos.wav',
-    title: 'Weapon Detected!',
-    body: 'A potential weapon has been detected. Please .',
+    title: 'Default',
+    body: 'Admin notif',
     data: { url: 'screens/notifications_student' },
     channelId: 'weapon_detected', 
     sticky: true,
     priority: 'high',
   };
+  if (isAdmin){
+    const message = {
+      to: expoPushToken,
+      sound: 'emergencysos.wav',
+      title: 'Weapon Detected!',
+      body: 'Admin notif',
+      data: { url: 'screens/notifications_student' },
+      channelId: 'weapon_detected', 
+      sticky: true,
+      priority: 'high',
+    };
+  }
+  else{
+    const message = {
+      to: expoPushToken,
+      sound: 'emergencysos.wav',
+      title: 'Weapon Detected!',
+      body: 'Student Admin',
+      data: { url: 'screens/notifications_student' },
+      channelId: 'weapon_detected', 
+      sticky: true,
+      priority: 'high',
+    };
+  }
 
   await fetch('https://exp.host/--/api/v2/push/send', {
     method: 'POST',
@@ -40,10 +64,11 @@ async function handleConfirmThreat() {
   for (const userRef of userRefs) {
     const userSnap = await getDoc(userRef);
     if (userSnap.exists()) {
-      const userData = userSnap.data() as { expoPushToken: string };;
+      const userData = userSnap.data() as { expoPushToken: string };
+      const isAdmin = userSnap.data() as { isAdmin: boolean };
       if (userData.expoPushToken) {
-        console.log(userData.expoPushToken);
-        sendPushNotification(userData.expoPushToken);
+        console.log(isAdmin.isAdmin);
+        sendPushNotification(isAdmin.isAdmin, userData.expoPushToken);
       }
     }
   }

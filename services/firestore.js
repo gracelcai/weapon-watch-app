@@ -18,14 +18,17 @@ import { collection, query, where, getDocs } from "firebase/firestore";
  * @returns {Promise<void>}
  */
 export const addUser = async (name, email, password, isAdmin, isVerifier, schoolId, expoPushToken) => {
+  const { user } = await createUserWithEmailAndPassword(getAuth(), email, password);
   try {
     /*
     const auth = getAuth();
     const userCredential = await createUserWithEmailAndPassword(auth, email, password);
     const user = userCredential.user; */
 
-    const { user } = await createUserWithEmailAndPassword(getAuth(), email, password);
     
+    
+    // Update the user's display name in Firebase Auth
+    await updateProfile(user, { displayName: name });
 
     /* build the document references right here */
     const userRef = doc(db, "users", user.uid);
@@ -35,13 +38,13 @@ export const addUser = async (name, email, password, isAdmin, isVerifier, school
       name,
       email,
       schoolId,
-      isAdmin: isAdmin,
-      isVerifier: isVerifier,
+      isAdmin,
+      isVerifier,
       expoPushToken,
       createdAt: new Date()
     });
   
-    /* push the ref into the school’s users array */
+    /* push the ref into the school’s usersw array */
     await updateDoc(schoolRef, { users: arrayUnion(userRef) });
     
     console.log("User successfully added:", user.uid);
