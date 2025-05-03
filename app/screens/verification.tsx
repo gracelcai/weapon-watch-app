@@ -2,9 +2,40 @@ import React, { useEffect, useState } from "react";
 import { View, Text, ActivityIndicator, Image, TouchableOpacity, StyleSheet, Alert } from "react-native";
 import { useRouter } from "expo-router";
 import { doc, onSnapshot, getDoc, updateDoc } from "firebase/firestore";
-import { auth, db } from "../../firebaseConfig";
+import { auth, db, storage } from "../../firebaseConfig";
 import { getUser } from "../../services/firestore";
 import { updateConfirmThreat } from '../../services/firestore';
+import { getDownloadURL, ref } from "firebase/storage";
+
+const ImageViewer = () => {
+  const [url, setUrl] = useState("");
+
+  useEffect(() => {
+    const fetchImage = async () => {
+      const imageRef = ref(storage, "frame_for_verifier.jpg"); // Adjust path if needed
+      try {
+        console.log("Fetching image...");
+        const downloadUrl = await getDownloadURL(imageRef);
+        console.log("Image URL fetched:", downloadUrl);
+        setUrl(downloadUrl);
+      } catch (err) {
+        console.error("Error fetching image:", err);
+      }
+    };
+  
+    fetchImage();
+  }, []);
+
+  return (
+    <View style={styles.imageViewerContainer}>
+      {url ? (
+        <Image source={{ uri: url }} style={styles.image} />
+      ) : (
+        <ActivityIndicator size="large" color="#fff" />
+      )}
+    </View>
+  );
+};
 
 async function sendPushNotification(isAdmin: boolean, expoPushToken: string) {
   const message = {
