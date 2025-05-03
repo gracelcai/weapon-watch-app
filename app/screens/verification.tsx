@@ -72,7 +72,7 @@ async function sendPushNotificationVerifier(expoPushToken: string) {
     priority: 'high',
   };
 
-  await fetch('https://exp.host/--/api/v2/push/send', {
+  const res = await fetch('https://exp.host/--/api/v2/push/send', {
     method: 'POST',
     headers: {
       Accept: 'application/json',
@@ -81,6 +81,8 @@ async function sendPushNotificationVerifier(expoPushToken: string) {
     },
     body: JSON.stringify(message),
   });
+  const data = await res.json();
+  console.log("Push response:", data);
 }
 
 async function handleConfirmThreat() {
@@ -120,6 +122,7 @@ export default function VerificationScreen() {
 
       if (detectedCamId && detectedCamId.trim() !== "") {
         // Trigger your desired action here
+        console.log("Detected camera ID:", userData.expoPushToken);
         sendPushNotificationVerifier(userData.expoPushToken)
         // For example, navigate to a different screen or display an alert
       }
