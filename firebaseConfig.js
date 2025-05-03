@@ -61,5 +61,6 @@ isSupported().then((supported) => {
 	}
 });
 
+
 // Export Firebase services
 export { auth, db, app };
