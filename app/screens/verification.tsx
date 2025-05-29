@@ -9,10 +9,11 @@ import { getDownloadURL, ref } from "firebase/storage";
 
 const ImageViewer = ({ url }: { url: string }) => (
   <View style={styles.imageViewerContainer}>
-    {url ? (
-      <Image source={{ uri: url }} style={styles.image} />
+    {url ? (        
+        <Image source={{ uri: url }} style={styles.image} />
     ) : (
-      <ActivityIndicator size="large" color="#fff" />
+      // <ActivityIndicator size="large" color="#fff" />
+      <Text style={styles.title}>No image</Text>
     )}
   </View>
 );
@@ -52,7 +53,7 @@ async function sendPushNotificationVerifier(expoPushToken: string) {
     priority: 'high',
   };
 
-  const res = await fetch('https://exp.host/--/api/v2/push/send', {
+  await fetch('https://exp.host/--/api/v2/push/send', {
     method: 'POST',
     headers: {
       Accept: 'application/json',
@@ -61,8 +62,8 @@ async function sendPushNotificationVerifier(expoPushToken: string) {
     },
     body: JSON.stringify(message),
   });
-  const data = await res.json();
-  console.log("Push response:", data);
+  // const data = await res.json();
+  // console.log("Push response:", data);
 }
 
 async function handleConfirmThreat() {
@@ -103,15 +104,16 @@ export default function VerificationScreen() {
 
       if (detectedCamId && detectedCamId.trim() !== "") {
         // Trigger your desired action here
+        sendPushNotificationVerifier(userData.expoPushToken);
         try {
-          const imageRef = ref(storage, "frame_for_verifier.jpg");
+          // const imgName = "frame_for_verifier_" + detectedCamId + ".jpg";
+          const imgName = data.firebase_storage_path;
+          const imageRef = ref(storage, imgName);
           const downloadUrl = await getDownloadURL(imageRef);
           setImageUrl(downloadUrl); // update state → re-render ImageViewer :contentReference[oaicite:1]{index=1}
         } catch (err) {
-          console.error("Error fetching image:", err);
+          // console.error("Error fetching image:", err);
         }
-        sendPushNotificationVerifier(userData.expoPushToken);
-        
         // For example, navigate to a different screen or display an alert
       }
     });
@@ -180,20 +182,29 @@ export default function VerificationScreen() {
   return (
     <View style={styles.container}>
       <Text style={styles.title2}>VERIFICATION</Text>
-      <Text style={styles.title}>Potential threat detected</Text>
+      
+      {imageUrl === "" && (
+        <View style={styles.loadingContainer}>
+          <Text style={styles.title}>No threat detected</Text>
+        </View>
+      )}
+      {imageUrl !== "" && (
+        <>
+          <Text style={styles.title}>Potential threat detected</Text>
+          {/* Threat Image */}
+          <ImageViewer url={imageUrl}/>
 
-      {/* Threat Image */}
-      {/* <Image source={require("../../assets/images/shooter.avif")} style={styles.image} /> */}
-      <ImageViewer url={imageUrl}/>
+          {/* Action Buttons */}
+          <TouchableOpacity style={styles.confirmButton} onPress={async () => { await handleConfirmThreat();}}>
+            <Text style={styles.confirmButtonText}>Confirm the threat alert</Text>
+          </TouchableOpacity>
 
-      {/* Action Buttons */}
-      <TouchableOpacity style={styles.confirmButton} onPress={async () => { await handleConfirmThreat();}}>
-        <Text style={styles.confirmButtonText}>Confirm the threat alert</Text>
-      </TouchableOpacity>
-
-      <TouchableOpacity style={styles.falseButton} onPress={handleFalseAlert}>
-        <Text style={styles.falseButtonText}>False alert</Text>
-      </TouchableOpacity>
+          <TouchableOpacity style={styles.falseButton} onPress={handleFalseAlert}>
+            <Text style={styles.falseButtonText}>False alert</Text>
+          </TouchableOpacity>
+        </>
+      )}
+      
 
       {/* Verification Transfer Button */}
       <TouchableOpacity style={styles.transferButton} onPress={() => router.push("/screens/verification_transfer")}>
