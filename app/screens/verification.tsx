@@ -9,10 +9,11 @@ import { getDownloadURL, ref } from "firebase/storage";
 
 const ImageViewer = ({ url }: { url: string }) => (
   <View style={styles.imageViewerContainer}>
-    {url ? (
-      <Image source={{ uri: url }} style={styles.image} />
+    {url ? (        
+        <Image source={{ uri: url }} style={styles.image} />
     ) : (
-      <ActivityIndicator size="large" color="#fff" />
+      // <ActivityIndicator size="large" color="#fff" />
+      <Text style={styles.title}>No image</Text>
     )}
   </View>
 );
@@ -52,7 +53,7 @@ async function sendPushNotificationVerifier(expoPushToken: string) {
     priority: 'high',
   };
 
-  const res = await fetch('https://exp.host/--/api/v2/push/send', {
+  await fetch('https://exp.host/--/api/v2/push/send', {
     method: 'POST',
     headers: {
       Accept: 'application/json',
@@ -61,36 +62,60 @@ async function sendPushNotificationVerifier(expoPushToken: string) {
     },
     body: JSON.stringify(message),
   });
-  const data = await res.json();
-  console.log("Push response:", data);
+  // const data = await res.json();
+  // console.log("Push response:", data);
 }
 
-async function handleConfirmThreat() {
-  alert("Threat confirmed! Authorities will be alerted.");
-  updateConfirmThreat('UMD', {'Active Event': true})
-  // Get the users of the school where was threat was detected
-  const snapshot = await getDoc(doc(db, "schools", "UMD"));
-  const data = snapshot.data();
+// async function handleConfirmThreat() {
+//   alert("Threat confirmed! Authorities will be alerted.");
+//   updateConfirmThreat('UMD', {'Active Event': true})
+//   // Get the users of the school where was threat was detected
+//   const snapshot = await getDoc(doc(db, "schools", "UMD"));
+//   const data = snapshot.data();
 
-  const userRefs: Array<any> = data!.users; // users is an array of DocumentReferences
-  for (const userRef of userRefs) {
-    const userSnap = await getDoc(userRef);
-    if (userSnap.exists()) {
-      const userData = userSnap.data() as any;
-      if (userData.expoPushToken) {
-        sendPushNotification(userData.isAdmin, userData.expoPushToken);
-      }
-    }
-  }
-  // Add API call to notify security team
-};
+//   const userRefs: Array<any> = data!.users; // users is an array of DocumentReferences
+//   for (const userRef of userRefs) {
+//     const userSnap = await getDoc(userRef);
+//     if (userSnap.exists()) {
+//       const userData = userSnap.data() as any;
+//       if (userData.expoPushToken) {
+//         sendPushNotification(userData.isAdmin, userData.expoPushToken);
+//       }
+//     }
+//   }
+//   // Add API call to notify security team
+//   setActiveEvent(true);
+// };
 
 
 export default function VerificationScreen() {
   const router = useRouter();
+  const [oldDetectID, setOldDetectID] = useState<string>("");
   // allowed will be true if user can see the screen, false if not, and null while checking.
   const [allowed, setAllowed] = useState<boolean | null>(null);
   const [imageUrl, setImageUrl] = useState<string>("");
+  const [activeEvent, setActiveEvent] = useState<boolean>(false);
+
+   const handleConfirmThreat = async () => {
+    alert("Threat confirmed! Authorities will be alerted.");
+    setActiveEvent(true);
+    await updateConfirmThreat('UMD', { 'Active Event': true });
+
+    const snapshot = await getDoc(doc(db, "schools", "UMD"));
+    const data = snapshot.data();
+    const userRefs: Array<any> = data!.users; // users is an array of DocumentReferences
+
+    for (const userRef of userRefs) {
+      const userSnap = await getDoc(userRef);
+      if (userSnap.exists()) {
+        const userData = userSnap.data() as any;
+        if (userData.expoPushToken) {
+          sendPushNotification(userData.isAdmin, userData.expoPushToken);
+        }
+      }
+    }
+    
+  };
 
   useEffect(() => {
     const docRef = doc(db, "schools", "UMD");
@@ -98,20 +123,32 @@ export default function VerificationScreen() {
     const unsubscribe = onSnapshot(docRef, async (snapshot) => {
       const data = snapshot.data();
       const detectedCamId = data?.detected_cam_id;
+      const eventFlag = data?.['Active Event'];
       const uid = auth.currentUser?.uid;
       const userData = await getUser(uid) as any;
 
-      if (detectedCamId && detectedCamId.trim() !== "") {
+      if (!eventFlag && activeEvent) {
+        setActiveEvent(false);
+      }
+
+      if (detectedCamId == ""){setImageUrl("");}
+      
+
+      if (detectedCamId != "" && detectedCamId !== oldDetectID && !eventFlag) {
+        setOldDetectID(detectedCamId);
         // Trigger your desired action here
+        sendPushNotificationVerifier(userData.expoPushToken);
+        //sendPushNotificationPotential();
         try {
-          const imageRef = ref(storage, "frame_for_verifier.jpg");
+          //const imgName = "frame_for_verifier_" + detectedCamId + ".jpg";
+          const imgName = data?.firebase_storage_path;
+          const imageRef = ref(storage, imgName);
           const downloadUrl = await getDownloadURL(imageRef);
+          
           setImageUrl(downloadUrl); // update state → re-render ImageViewer :contentReference[oaicite:1]{index=1}
         } catch (err) {
           console.error("Error fetching image:", err);
         }
-        sendPushNotificationVerifier(userData.expoPushToken);
-        
         // For example, navigate to a different screen or display an alert
       }
     });
@@ -153,9 +190,19 @@ export default function VerificationScreen() {
 
   const handleFalseAlert = () => {
     alert("False alarm reported.");
-    updateConfirmThreat('UMD', {'Active Event': false})
     updateDoc(doc(db, 'schools', "UMD"), {'detected_cam_id': ""});
+    updateConfirmThreat('UMD', {'Active Event': false});
+    setOldDetectID("");
+    setActiveEvent(false);
     // Add API call to log false alert
+  };
+
+  const endEvent = () => {
+    updateDoc(doc(db, 'schools', 'UMD'), { 'detected_cam_id': "" });
+    updateConfirmThreat('UMD', { 'Active Event': false });
+    setImageUrl("");
+    setOldDetectID("");
+    setActiveEvent(false);
   };
 
   // While checking user verification, show a loading indicator.
@@ -177,23 +224,43 @@ export default function VerificationScreen() {
     );
   }
 
+  if (activeEvent) {
+    return (
+      <View style={styles.container}>
+        <Text style={styles.title2}>Active Event Ongoing</Text>
+        <TouchableOpacity style={styles.confirmButton} onPress={endEvent}>
+          <Text style={styles.confirmButtonText}>End Active Event</Text>
+        </TouchableOpacity>
+      </View>
+    );
+  }
+
   return (
     <View style={styles.container}>
       <Text style={styles.title2}>VERIFICATION</Text>
-      <Text style={styles.title}>Potential threat detected</Text>
+      
+      {imageUrl === "" && (
+        <View style={styles.loadingContainer}>
+          <Text style={styles.title}>No threat detected</Text>
+        </View>
+      )}
+      {imageUrl !== "" && (
+        <>
+          <Text style={styles.title}>Potential threat detected</Text>
+          {/* Threat Image */}
+          <ImageViewer url={imageUrl}/>
 
-      {/* Threat Image */}
-      {/* <Image source={require("../../assets/images/shooter.avif")} style={styles.image} /> */}
-      <ImageViewer url={imageUrl}/>
+          {/* Action Buttons */}
+          <TouchableOpacity style={styles.confirmButton} onPress={async () => { await handleConfirmThreat();}}>
+            <Text style={styles.confirmButtonText}>Confirm the threat alert</Text>
+          </TouchableOpacity>
 
-      {/* Action Buttons */}
-      <TouchableOpacity style={styles.confirmButton} onPress={async () => { await handleConfirmThreat();}}>
-        <Text style={styles.confirmButtonText}>Confirm the threat alert</Text>
-      </TouchableOpacity>
-
-      <TouchableOpacity style={styles.falseButton} onPress={handleFalseAlert}>
-        <Text style={styles.falseButtonText}>False alert</Text>
-      </TouchableOpacity>
+          <TouchableOpacity style={styles.falseButton} onPress={handleFalseAlert}>
+            <Text style={styles.falseButtonText}>False alert</Text>
+          </TouchableOpacity>
+        </>
+      )}
+      
 
       {/* Verification Transfer Button */}
       <TouchableOpacity style={styles.transferButton} onPress={() => router.push("/screens/verification_transfer")}>
