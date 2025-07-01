@@ -124,13 +124,13 @@ export default function VerificationScreen() {
           const userSnap = await getDoc(userRef);
           if (userSnap.exists()) {
             const userData = userSnap.data() as any;
-            if (userData.expoPushToken) {
+            if (userData.expoPushToken != verifierData.expoPushToken) {
               const message = {
               to: userData.expoPushToken,
               sound: 'emergencysos.wav',
               title: 'POTENTIAL THREAT DETECTED',
               body: userData.expoPushToken == verifierData.expoPushToken ? 'Confirm Active Threat Event': 'Await further instructions',
-              data: { url: 'screens/verification' },
+              data: { url: 'screens/notification_students' },
               channelId: 'weapon_detected',
               sticky: true,
               priority: 'high',
