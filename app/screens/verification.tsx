@@ -18,18 +18,7 @@ const ImageViewer = ({ url }: { url: string }) => (
   </View>
 );
 
-async function sendPushNotification(isAdmin: boolean, expoPushToken: string) {
-  const message = {
-    to: expoPushToken,
-    sound: 'emergencysos.wav',
-    title: 'ACTIVE THREAT',
-    body: isAdmin ? 'Officers en-route. All faculty must secure classrooms: lock/barricade doors, call 911 with updates (location, description), and account for all students via attendance rosters' : 'Shelter-in-place order in effect. Stay inside your current room, lock/barricade the door, turn off lights, move away from windows, and silence all devices. Do not open doors for anyone until you hear the official ALL-CLEAR.',
-    data: { url: 'screens/notifications_student' },
-    channelId: 'weapon_detected',
-    sticky: true,
-    priority: 'high',
-  };
-
+async function sendPushNotification(message: any) {
   await fetch('https://exp.host/--/api/v2/push/send', {
     method: 'POST',
     headers: {
@@ -39,31 +28,6 @@ async function sendPushNotification(isAdmin: boolean, expoPushToken: string) {
     },
     body: JSON.stringify(message),
   });
-}
-
-async function sendPushNotificationVerifier(expoPushToken: string) {
-  const message = {
-    to: expoPushToken,
-    sound: 'emergencysos.wav',
-    title: 'ACTIVE THREAT DETECTED',
-    body: 'Confirm Active Threat Event',
-    data: { url: 'screens/verification' },
-    channelId: 'weapon_detected',
-    sticky: true,
-    priority: 'high',
-  };
-
-  await fetch('https://exp.host/--/api/v2/push/send', {
-    method: 'POST',
-    headers: {
-      Accept: 'application/json',
-      'Accept-encoding': 'gzip, deflate',
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(message),
-  });
-  // const data = await res.json();
-  // console.log("Push response:", data);
 }
 
 // async function handleConfirmThreat() {
@@ -79,12 +43,20 @@ async function sendPushNotificationVerifier(expoPushToken: string) {
 //     if (userSnap.exists()) {
 //       const userData = userSnap.data() as any;
 //       if (userData.expoPushToken) {
-//         sendPushNotification(userData.isAdmin, userData.expoPushToken);
+//           const message = {
+//           to: userData.expoPushToken,
+//           sound: 'emergencysos.wav',
+//           title: 'ACTIVE THREAT',
+//           body: userData.isAdmin ? 'Officers en-route. All faculty must secure classrooms: lock/barricade doors, call 911 with updates (location, description), and account for all students via attendance rosters' : 'Shelter-in-place order in effect. Stay inside your current room, lock/barricade the door, turn off lights, move away from windows, and silence all devices. Do not open doors for anyone until you hear the official ALL-CLEAR.',
+//           data: { url: 'screens/notifications_student' },
+//           channelId: 'weapon_detected',
+//           sticky: true,
+//           priority: 'high',
+//         };
+//         sendPushNotification(message);
 //       }
 //     }
 //   }
-//   // Add API call to notify security team
-//   setActiveEvent(true);
 // };
 
 
@@ -110,7 +82,17 @@ export default function VerificationScreen() {
       if (userSnap.exists()) {
         const userData = userSnap.data() as any;
         if (userData.expoPushToken) {
-          sendPushNotification(userData.isAdmin, userData.expoPushToken);
+            const message = {
+            to: userData.expoPushToken,
+            sound: 'emergencysos.wav',
+            title: 'ACTIVE THREAT',
+            body: userData.isAdmin ? 'Officers en-route. All faculty must secure classrooms: lock/barricade doors, call 911 with updates (location, description), and account for all students via attendance rosters' : 'Shelter-in-place order in effect. Stay inside your current room, lock/barricade the door, turn off lights, move away from windows, and silence all devices. Do not open doors for anyone until you hear the official ALL-CLEAR.',
+            data: { url: 'screens/notifications_student' },
+            channelId: 'weapon_detected',
+            sticky: true,
+            priority: 'high',
+          };
+          sendPushNotification(message);
         }
       }
     }
@@ -125,7 +107,7 @@ export default function VerificationScreen() {
       const detectedCamId = data?.detected_cam_id;
       const eventFlag = data?.['Active Event'];
       const uid = auth.currentUser?.uid;
-      const userData = await getUser(uid) as any;
+      const verifierData = await getUser(uid) as any;
 
       if (!eventFlag && activeEvent) {
         setActiveEvent(false);
@@ -136,9 +118,28 @@ export default function VerificationScreen() {
 
       if (detectedCamId != "" && detectedCamId !== oldDetectID && !eventFlag) {
         setOldDetectID(detectedCamId);
-        // Trigger your desired action here
-        sendPushNotificationVerifier(userData.expoPushToken);
-        //sendPushNotificationPotential();
+
+        const userRefs: Array<any> = data!.users; // users is an array of DocumentReferences
+        for (const userRef of userRefs) {
+          const userSnap = await getDoc(userRef);
+          if (userSnap.exists()) {
+            const userData = userSnap.data() as any;
+            if (userData.expoPushToken) {
+              const message = {
+              to: userData.expoPushToken,
+              sound: 'emergencysos.wav',
+              title: 'POTENTIAL THREAT DETECTED',
+              body: userData.expoPushToken == verifierData.expoPushToken ? 'Confirm Active Threat Event': 'Await further instructions',
+              data: { url: 'screens/verification' },
+              channelId: 'weapon_detected',
+              sticky: true,
+              priority: 'high',
+            };
+            sendPushNotification(message);
+            }
+          }
+        }
+
         try {
           //const imgName = "frame_for_verifier_" + detectedCamId + ".jpg";
           const imgName = data?.firebase_storage_path;
@@ -188,21 +189,65 @@ export default function VerificationScreen() {
 
   }, [router]);
 
-  const handleFalseAlert = () => {
+  const handleFalseAlert = async() => {
     alert("False alarm reported.");
     updateDoc(doc(db, 'schools', "UMD"), {'detected_cam_id': ""});
     updateConfirmThreat('UMD', {'Active Event': false});
     setOldDetectID("");
     setActiveEvent(false);
+
+    const snapshot = await getDoc(doc(db, "schools", "UMD"));
+    const data = snapshot.data();
+    const userRefs: Array<any> = data!.users; // users is an array of DocumentReferences
+    for (const userRef of userRefs) {
+      const userSnap = await getDoc(userRef);
+      if (userSnap.exists()) {
+        const userData = userSnap.data() as any;
+        if (userData.expoPushToken) {
+          const message = {
+          to: userData.expoPushToken,
+          sound: 'emergencysos.wav',
+          title: 'FALSE ALERT',
+          body: 'No threat detected.',
+          channelId: 'weapon_detected',
+          sticky: true,
+          priority: 'high',
+        };
+        sendPushNotification(message);
+        }
+      }
+    }
     // Add API call to log false alert
   };
 
-  const endEvent = () => {
+  const endEvent = async() => {
     updateDoc(doc(db, 'schools', 'UMD'), { 'detected_cam_id': "" });
     updateConfirmThreat('UMD', { 'Active Event': false });
     setImageUrl("");
     setOldDetectID("");
     setActiveEvent(false);
+
+    const snapshot = await getDoc(doc(db, "schools", "UMD"));
+    const data = snapshot.data();
+    const userRefs: Array<any> = data!.users; // users is an array of DocumentReferences
+    for (const userRef of userRefs) {
+      const userSnap = await getDoc(userRef);
+      if (userSnap.exists()) {
+        const userData = userSnap.data() as any;
+        if (userData.expoPushToken) {
+          const message = {
+          to: userData.expoPushToken,
+          sound: 'emergencysos.wav',
+          title: 'END OF ACTIVE THREAT',
+          body: 'The active threat event has been resolved.',
+          channelId: 'weapon_detected',
+          sticky: true,
+          priority: 'high',
+        };
+        sendPushNotification(message);
+        }
+      }
+    }
   };
 
   // While checking user verification, show a loading indicator.
@@ -228,6 +273,7 @@ export default function VerificationScreen() {
     return (
       <View style={styles.container}>
         <Text style={styles.title2}>Active Event Ongoing</Text>
+        <Text style={styles.title}>Navigate to the tracking page</Text>
         <TouchableOpacity style={styles.confirmButton} onPress={endEvent}>
           <Text style={styles.confirmButtonText}>End Active Event</Text>
         </TouchableOpacity>
