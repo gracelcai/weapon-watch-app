@@ -220,34 +220,48 @@ export default function VerificationScreen() {
     // Add API call to log false alert
   };
 
-  const endEvent = async() => {
-    updateDoc(doc(db, 'schools', 'UMD'), { 'detected_cam_id': "" });
-    updateConfirmThreat('UMD', { 'Active Event': false });
-    setImageUrl("");
-    setOldDetectID("");
-    setActiveEvent(false);
+  const endEvent = async () => {
+    Alert.alert(
+      "End Active Event?",
+      "Are you sure you want to end the active event?",
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Yes",
+          style: "destructive",
+          onPress: async () => {
+            // Your existing endEvent logic:
+            await updateDoc(doc(db, 'schools', 'UMD'), { 
+              detected_cam_id: "", 
+              'Active Event': false 
+            });
+            await updateConfirmThreat('UMD', { 'Active Event': false });
+            setImageUrl("");
+            setOldDetectID("");
+            setActiveEvent(false);
 
-    const snapshot = await getDoc(doc(db, "schools", "UMD"));
-    const data = snapshot.data();
-    const userRefs: Array<any> = data!.users; // users is an array of DocumentReferences
-    for (const userRef of userRefs) {
-      const userSnap = await getDoc(userRef);
-      if (userSnap.exists()) {
-        const userData = userSnap.data() as any;
-        if (userData.expoPushToken) {
-          const message = {
-          to: userData.expoPushToken,
-          sound: 'emergencysos.wav',
-          title: 'END OF ACTIVE THREAT',
-          body: 'The active threat event has been resolved.',
-          channelId: 'weapon_detected',
-          sticky: true,
-          priority: 'high',
-        };
-        sendPushNotification(message);
-        }
-      }
-    }
+            const snapshot = await getDoc(doc(db, "schools", "UMD"));
+            const userRefs = snapshot.data()?.users || [];
+            for (const ref of userRefs) {
+              const userData = (await getDoc(ref)).data() as any;
+              if (userData.expoPushToken) {
+                const message = {
+                  to: userData.expoPushToken,
+                  sound: 'emergencysos.wav',
+                  title: 'END OF ACTIVE THREAT',
+                  body: 'The active threat event has been resolved.',
+                  channelId: 'weapon_detected',
+                  sticky: true,
+                  priority: 'high',
+                };
+                sendPushNotification(message);
+              }
+            }
+          },
+        },
+      ],
+      { cancelable: false }
+    );
   };
 
   // While checking user verification, show a loading indicator.
