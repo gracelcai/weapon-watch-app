@@ -148,7 +148,7 @@ export default function VerificationScreen() {
           
           setImageUrl(downloadUrl); // update state → re-render ImageViewer :contentReference[oaicite:1]{index=1}
         } catch (err) {
-          console.error("Error fetching image:", err);
+          // console.error("Error fetching image:", err);
         }
         // For example, navigate to a different screen or display an alert
       }

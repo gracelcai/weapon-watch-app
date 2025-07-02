@@ -677,7 +677,7 @@ const detected = camerasInRoom.some((camera) => camera.detected);
 // Function to determine the polygon color based on detection status
 const getPolygonColor = (cameras: any[]) => {
   // If any camera in the room has detected a shooter or weapon, return red
-  if (cameras.some((camera) => camera.shooter_detected || camera.weapon_detected)) {
+  if (cameras.some((camera) => camera.shooter_detected || camera.detected)) {
     return "rgba(255, 0, 0, 0.3)"; // Red if shooter or weapon detected
   }
   return "rgba(0, 255, 0, 0.2)"; // Green otherwise
