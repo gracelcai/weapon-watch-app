@@ -113,6 +113,10 @@ export default function VerificationScreen() {
         setActiveEvent(false);
       }
 
+      if (eventFlag && !activeEvent) {
+        setActiveEvent(true);
+      }
+
       if (detectedCamId == ""){setImageUrl("");}
       
 
