@@ -29,9 +29,9 @@ type Room = {
 
 // Assets
 const floorImages: Record<Floor, any> = {
-  floor1: require("/Users/vpatel/Documents/weapon-watch-app/assets/images/idea-factory-1.png"),
-  floor2: require("/Users/vpatel/Documents/weapon-watch-app/assets/images/idea-factory-3.png"),
-  floor3: require("/Users/vpatel/Documents/weapon-watch-app/assets/images/idea-factory-3.png"),
+  floor1: require("../../assets/images/idea-factory-1.png"),
+  floor2: require("../../assets/images/idea-factory-3.png"),
+  floor3: require("../../assets/images/idea-factory-3.png"),
 };
 
 const floorBounds: Record<Floor, { northEast: { latitude: number; longitude: number }; southWest: { latitude: number; longitude: number } }> = {
