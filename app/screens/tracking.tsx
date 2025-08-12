@@ -588,8 +588,8 @@ useEffect(() => {
             latitude: firstCam.latitude,
             longitude: firstCam.longitude,
           },
-          pitch: 10, // rotates in the x direction
-          heading: 0, // rotates in the x/y
+          pitch: 20, // rotates in the x direction
+          heading: 10, // rotates in the x/y
           altitude: 120, // zoom level
           zoom: 400, // no effect?
         },
@@ -630,7 +630,7 @@ useEffect(() => {
               longitude:
                 cameraDataset[currentFloor][0]?.longitude ?? -76.9383,
             },
-            pitch: 10,
+            pitch: 15,
             heading: 60,
             altitude: 70,
             zoom: 800, // no effect?
