@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { View, Text, StyleSheet, Image, ScrollView, Button } from "react-native";
 import MapView, { Marker, Circle, Polygon, Overlay } from "react-native-maps";
+import { useRef as reactUseRef } from "react";
 
 // Types
 type Camera = {
@@ -37,7 +38,7 @@ const floorImages: Record<Floor, any> = {
 const floorBounds: Record<Floor, { northEast: { latitude: number; longitude: number }; southWest: { latitude: number; longitude: number } }> = {
   floor1: {
     northEast: { latitude: 38.99048332497971, longitude: -76.93799487382921 },
-    southWest: { latitude: 38.99029118164155, longitude: -76.938594790733  },
+    southWest: { latitude: 38.99029118164155, longitude: -76.938594790733 },
   },
   floor2: {
     northEast: { latitude: 38.99050068686733, longitude: -76.93776544244812 },
@@ -68,10 +69,10 @@ const roomPolygons: Room[] = [
     name: "Room 1101A/B",
     floor: "floor1",
     polygon: [
-      { x: 0.688, y: 0.632 },
-      { x: 0.688, y: 0.450 },
-      { x: 0.770, y: 0.450 },
-      { x: 0.770, y: 0.665 },
+      { x: 0.690, y: 0.718 },
+      { x: 0.690, y: 0.515 },
+      { x: 0.770, y: 0.515 },
+      { x: 0.770, y: 0.755 },
     ],
   },
   {
@@ -79,10 +80,10 @@ const roomPolygons: Room[] = [
     name: "Room 1101C/E",
     floor: "floor1",
     polygon: [
-      { x: 0.770, y: 0.595 },
-      { x: 0.770, y: 0.450 },
-      { x: 0.965, y: 0.450 },
-      { x: 0.965, y: 0.595 },
+      { x: 0.770, y: 0.675 },
+      { x: 0.770, y: 0.515 },
+      { x: 0.975, y: 0.515 },
+      { x: 0.975, y: 0.675 },
     ],
   },
   {
@@ -90,10 +91,10 @@ const roomPolygons: Room[] = [
     name: "Room 1101D",
     floor: "floor1",
     polygon: [
-      { x: 0.770, y: 0.595 },
-      { x: 0.770, y: 0.715 },
-      { x: 0.900, y: 0.785 },
-      { x: 0.900, y: 0.595 },
+      { x: 0.770, y: 0.675 },
+      { x: 0.770, y: 0.825 },
+      { x: 0.910, y: 0.900 },
+      { x: 0.910, y: 0.675 },
     ],
   },
   {
@@ -101,10 +102,10 @@ const roomPolygons: Room[] = [
     name: "Room 1103",
     floor: "floor1",
     polygon: [
-      { x: 0.665, y: 0.324 },
+      { x: 0.665, y: 0.375 },
       { x: 0.665, y: 0.005 },
       { x: 0.755, y: 0.005 },
-      { x: 0.755, y: 0.324 },
+      { x: 0.755, y: 0.375 },
     ],
   },
   {
@@ -112,10 +113,10 @@ const roomPolygons: Room[] = [
     name: "Room 1107",
     floor: "floor1",
     polygon: [
-      { x: 0.480, y: 0.325 },
-      { x: 0.480, y: 0.005 },
+      { x: 0.478, y: 0.375 },
+      { x: 0.478, y: 0.005 },
       { x: 0.665, y: 0.005 },
-      { x: 0.665, y: 0.325 },
+      { x: 0.665, y: 0.375 },
     ],
   },
   {
@@ -123,10 +124,10 @@ const roomPolygons: Room[] = [
     name: "Room 1109",
     floor: "floor1",
     polygon: [
-      { x: 0.365, y: 0.325 },
-      { x: 0.365, y: 0.005 },
-      { x: 0.480, y: 0.005 },
-      { x: 0.480, y: 0.325 },
+      { x: 0.360, y: 0.375 },
+      { x: 0.360, y: 0.005 },
+      { x: 0.478, y: 0.005 },
+      { x: 0.478, y: 0.375 },
     ],
   },
   {
@@ -134,10 +135,10 @@ const roomPolygons: Room[] = [
     name: "Bathrooms",
     floor: "floor1",
     polygon: [
-      { x: 0.30, y: 0.605 },
-      { x: 0.300, y: 0.820 },
-      { x: 0.475, y: 0.820 },
-      { x: 0.475, y: 0.605 },
+      { x: 0.292, y: 0.680 },
+      { x: 0.292, y: 0.920 },
+      { x: 0.468, y: 0.920 },
+      { x: 0.468, y: 0.680 },
     ],
   },
   {
@@ -145,10 +146,10 @@ const roomPolygons: Room[] = [
     name: "Room ALeX Garage",
     floor: "floor1",
     polygon: [
-      { x: 0.086, y: 0.005 },
-      { x: 0.086, y: 0.488 },
-      { x: 0.364, y: 0.488 },
-      { x: 0.365, y: 0.005 },
+      { x: 0.078, y: 0.005 },
+      { x: 0.078, y: 0.568 },
+      { x: 0.360, y: 0.568 },
+      { x: 0.360, y: 0.005 },
     ],
   },
   {
@@ -156,10 +157,10 @@ const roomPolygons: Room[] = [
     name: "Room 1118",
     floor: "floor1",
     polygon: [
-      { x: 0.225, y: 0.605 },
-      { x: 0.225, y: 0.820 },
-      { x: 0.300, y: 0.820 },
-      { x: 0.300, y: 0.605 },
+      { x: 0.218, y: 0.680 },
+      { x: 0.218, y: 0.920 },
+      { x: 0.292, y: 0.920 },
+      { x: 0.292, y: 0.680 },
     ],
   },
   {
@@ -167,10 +168,10 @@ const roomPolygons: Room[] = [
     name: "Room 1129/A/B/C",
     floor: "floor1",
     polygon: [
-      { x: 0.018, y: 0.005 },
-      { x: 0.018, y: 0.318 },
-      { x: 0.086, y: 0.318 },
-      { x: 0.086, y: 0.005 },
+      { x: 0.001, y: 0.005 },
+      { x: 0.001, y: 0.358 },
+      { x: 0.078, y: 0.358 },
+      { x: 0.078, y: 0.005 },
     ],
   },
   {
@@ -178,10 +179,10 @@ const roomPolygons: Room[] = [
     name: "Room 1191",
     floor: "floor1",
     polygon: [
-      { x: 0.018, y: 0.605 },
-      { x: 0.018, y: 0.735 },
-      { x: 0.065, y: 0.735 },
-      { x: 0.065, y: 0.605 },
+      { x: 0.001, y: 0.680 },
+      { x: 0.001, y: 0.835 },
+      { x: 0.055, y: 0.835 },
+      { x: 0.055, y: 0.680 },
     ],
   },
   {
@@ -189,10 +190,10 @@ const roomPolygons: Room[] = [
     name: "Room 1192",
     floor: "floor1",
     polygon: [
-      { x: 0.065, y: 0.605 },
-      { x: 0.065, y: 0.820 },
-      { x: 0.115, y: 0.820 },
-      { x: 0.115, y: 0.605 },
+      { x: 0.055, y: 0.680 },
+      { x: 0.055, y: 0.880 },
+      { x: 0.110, y: 0.880 },
+      { x: 0.110, y: 0.680 },
     ],
   },
   {
@@ -200,10 +201,10 @@ const roomPolygons: Room[] = [
     name: "West Stairwell",
     floor: "floor1",
     polygon: [
-      { x: 0.115, y: 0.605 },
-      { x: 0.115, y: 0.680 },
-      { x: 0.225, y: 0.680 },
-      { x: 0.225, y: 0.605 },
+      { x: 0.110, y: 0.780 },
+      { x: 0.110, y: 0.920 },
+      { x: 0.218, y: 0.920 },
+      { x: 0.218, y: 0.780 },
     ],
   },
   {
@@ -211,10 +212,10 @@ const roomPolygons: Room[] = [
     name: "West Elevator",
     floor: "floor1",
     polygon: [
-      { x: 0.115, y: 0.680 },
-      { x: 0.115, y: 0.820 },
-      { x: 0.225, y: 0.820 },
-      { x: 0.225, y: 0.680 },
+      { x: 0.110, y: 0.568 },
+      { x: 0.110, y: 0.780 },
+      { x: 0.218, y: 0.780 },
+      { x: 0.218, y: 0.568 },
     ],
   },
   {
@@ -222,10 +223,10 @@ const roomPolygons: Room[] = [
     name: "Main Stairs",
     floor: "floor1",
     polygon: [
-      { x: 0.460, y: 0.535 },
-      { x: 0.460, y: 0.325 },
-      { x: 0.625, y: 0.325 },
-      { x: 0.625, y: 0.535 },
+      { x: 0.460, y: 0.610 },
+      { x: 0.460, y: 0.375 },
+      { x: 0.625, y: 0.375 },
+      { x: 0.625, y: 0.610 },
     ],
   },
   {
@@ -233,10 +234,10 @@ const roomPolygons: Room[] = [
     name: "Room 1196",
     floor: "floor1",
     polygon: [
-      { x: 0.475, y: 0.605 },
-      { x: 0.475, y: 0.820 },
-      { x: 0.510, y: 0.820 },
-      { x: 0.510, y: 0.605 },
+      { x: 0.468, y: 0.715 },
+      { x: 0.468, y: 0.920 },
+      { x: 0.510, y: 0.920 },
+      { x: 0.510, y: 0.715 },
     ],
   },
   {
@@ -244,10 +245,10 @@ const roomPolygons: Room[] = [
     name: "East Stairwell",
     floor: "floor1",
     polygon: [
-      { x: 0.510, y: 0.675 },
-      { x: 0.510, y: 0.820 },
-      { x: 0.624, y: 0.820 },
-      { x: 0.624, y: 0.675 },
+      { x: 0.510, y: 0.770 },
+      { x: 0.510, y: 0.920 },
+      { x: 0.624, y: 0.920 },
+      { x: 0.624, y: 0.770 },
     ],
   },
   {
@@ -255,10 +256,10 @@ const roomPolygons: Room[] = [
     name: "East Elevator",
     floor: "floor1",
     polygon: [
-      { x: 0.510, y: 0.535 },
-      { x: 0.510, y: 0.675 },
-      { x: 0.624, y: 0.675 },
-      { x: 0.624, y: 0.535 },
+      { x: 0.510, y: 0.610 },
+      { x: 0.510, y: 0.770 },
+      { x: 0.624, y: 0.770 },
+      { x: 0.624, y: 0.610 },
     ],
   },
   {
@@ -266,10 +267,10 @@ const roomPolygons: Room[] = [
     name: "Main Entry",
     floor: "floor1",
     polygon: [
-      { x: 0.635, y: 0.610 },
-      { x: 0.645, y: 0.450 },
-      { x: 0.690, y: 0.450 },
-      { x: 0.690, y: 0.635 },
+      { x: 0.635, y: 0.692 },
+      { x: 0.645, y: 0.515 },
+      { x: 0.690, y: 0.515 },
+      { x: 0.690, y: 0.718 },
     ],
   },
   // FLOOR TWOOO
@@ -522,13 +523,15 @@ const roomPolygons: Room[] = [
 export default function TrackingPage() {
   const [cameraData, setCameraData] = useState<Camera[]>([]);
   const [currentFloor, setCurrentFloor] = useState<Floor>("floor1");
-  const [mapRegion, setMapRegion] = useState({
+/*  const [mapRegion, setMapRegion] = useState({
     latitude: 0,
     longitude: 0,
     latitudeDelta: 0.0008,
     longitudeDelta: 0.0008,
   });
+removing Region state*/ 
   const [shooterDetected, setShooterDetected] = useState<boolean>(false);
+  const mapRef = useRef<MapView | null>(null);
 
   const cameraDataset: CameraData = {
     floor1: [
@@ -571,23 +574,29 @@ export default function TrackingPage() {
     ],
   };
 
-  useEffect(() => {
+useEffect(() => {
     const floorCameras = cameraDataset[currentFloor];
     setCameraData(floorCameras);
 
-    const alertCam = floorCameras.find(cam => cam.detection);
+    const alertCam = floorCameras.find((cam) => cam.detection);
     const firstCam = alertCam || floorCameras[0];
 
-    if (firstCam) {
-      setMapRegion({
-        latitude: firstCam.latitude,
-        longitude: firstCam.longitude,
-        latitudeDelta: 0.0008,
-        longitudeDelta: 0.0008,
-      });
+    if (firstCam && mapRef.current) {
+      mapRef.current.animateCamera(
+        {
+          center: {
+            latitude: firstCam.latitude,
+            longitude: firstCam.longitude,
+          },
+          pitch: 20, // rotates in the x direction
+          heading: 10, // rotates in the x/y
+          altitude: 120, // zoom level
+          zoom: 400, // no effect?
+        },
+        { duration: 1000 }
+      );
     }
   }, [currentFloor, shooterDetected]);
-
 
   const bounds = floorBounds[currentFloor];
   const toLatLng = (x: number, y: number) => {
@@ -607,63 +616,85 @@ export default function TrackingPage() {
   // console.log("Rendering polygon:", Room.name);
 
 
-  return (
-  <View style={styles.container}>
-    <View style={styles.mapContainer}>
-      <MapView
-        style={StyleSheet.absoluteFill}
-        region={mapRegion}
-        onRegionChangeComplete={(region) => setMapRegion(region)}
-        mapType="standard"
-      >
-        {/* FLOORPLAN OVERLAY */}
-        <Overlay
-          key={currentFloor}
-          image={floorImages[currentFloor]}
-          bounds={[
-            [bounds.southWest.latitude, bounds.southWest.longitude], // bottom-left
-            [bounds.northEast.latitude, bounds.northEast.longitude], // top-right
+ return (
+    <View style={styles.container}>
+      <View style={styles.mapContainer}>
+        <MapView
+          ref={mapRef}
+          style={StyleSheet.absoluteFill}
+          mapType="standard"
+          initialCamera={{
+            center: {
+              latitude:
+                cameraDataset[currentFloor][0]?.latitude ?? 38.9904,
+              longitude:
+                cameraDataset[currentFloor][0]?.longitude ?? -76.9383,
+            },
+            pitch: 15,
+            heading: 60,
+            altitude: 70,
+            zoom: 800, // no effect?
+          }}
+          // does not exist? tiltEnabled={true}
+          rotateEnabled={true}
+        >
+          <Overlay
+            key={currentFloor}
+            image={floorImages[currentFloor]}
+            bounds={[
+              [bounds.southWest.latitude, bounds.southWest.longitude],
+              [bounds.northEast.latitude, bounds.northEast.longitude],
+            ]}
+            // zIndex={4}
+          />
 
-              // [bounds.northEast.latitude, bounds.northEast.longitude], // top-right
-              // [bounds.southWest.latitude, bounds.southWest.longitude], // bottom-left
-          ]}
-          zIndex={4}  // find if there's a way to set this 2 seconds after the map loads
-          // not needed for android, but doesn't work for overlay in general
-        />
+          {roomPolygons
+            .filter((room) => room.floor === currentFloor)
+            .map((room) => (
+              <Polygon
+                key={room.id}
+                coordinates={room.polygon.map((p) =>
+                  toLatLng(p.x, p.y)
+                )}
+                fillColor="rgba(0, 0, 255, 0.5)"
+                strokeColor="white"
+                strokeWidth={2}
+                zIndex={3}
+              />
+            ))}
 
-        {/* ROOM POLYGONS */}
-        {roomPolygons
-          .filter((room) => room.floor === currentFloor)
-          .map((room) => (
-            <Polygon
-              key={room.id}
-              coordinates={room.polygon.map(p => toLatLng(p.x, p.y))}
-              fillColor="rgba(0, 0, 255, 0.5)"
-              strokeColor="white"
-              strokeWidth={2}
-              zIndex={3}
-            />
+          {cameraData.map((cam) => (
+            <React.Fragment key={cam.id}>
+              <Marker
+                coordinate={{
+                  latitude: cam.latitude,
+                  longitude: cam.longitude,
+                }}
+                title={cam.name}
+                zIndex={4}
+              />
+              <Circle
+                center={{
+                  latitude: cam.latitude,
+                  longitude: cam.longitude,
+                }}
+                radius={cam.coverageRadius}
+                strokeColor={
+                  cam.detection
+                    ? "rgba(255,0,0,0.9)"
+                    : "rgba(0,255,0,0.4)"
+                }
+                fillColor={
+                  cam.detection
+                    ? "rgba(255,0,0,0.2)"
+                    : "rgba(0,255,0,0.1)"
+                }
+                zIndex={2}
+              />
+            </React.Fragment>
           ))}
-
-        {/* CAMERAS (Markers and Circles) */}
-        {cameraData.map((cam) => (
-          <React.Fragment key={cam.id}>
-            <Marker
-              coordinate={{ latitude: cam.latitude, longitude: cam.longitude }}
-              title={cam.name}
-              zIndex={4} // higher zIndex for markers on top
-            />
-            <Circle
-              center={{ latitude: cam.latitude, longitude: cam.longitude }}
-              radius={cam.coverageRadius}
-              strokeColor={cam.detection ? "rgba(255,0,0,0.9)" : "rgba(0,255,0,0.4)"}
-              fillColor={cam.detection ? "rgba(255,0,0,0.2)" : "rgba(0,255,0,0.1)"}
-              zIndex={2}
-            />
-          </React.Fragment>
-        ))}
-      </MapView>
-    </View>
+        </MapView>
+      </View>
 
       <View style={styles.controlSection}>
         <View style={styles.floorButtonGroup}>
@@ -703,7 +734,6 @@ export default function TrackingPage() {
     </View>
   );
 }
-
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#000", paddingTop: 40 },
   title: { color: "#fff", fontSize: 24, fontWeight: "bold", textAlign: "center", marginBottom: 16 },
@@ -724,3 +754,4 @@ const styles = StyleSheet.create({
   },
   image: { opacity: 0.5 },
 });
+const useRef = reactUseRef;
