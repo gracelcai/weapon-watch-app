@@ -99,8 +99,8 @@ export default function TransferVerificationScreen() {
   return (
     <View style={styles.container}>
       {/* Back Button */}
-      <TouchableOpacity style={styles.backButton} onPress={() => router.push("/screens/verification")}>
-        <FontAwesome name="arrow-left" size={20} color="#fff" />
+      <TouchableOpacity style={styles.backButton} hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }} onPress={() => router.push("/screens/settings")}>
+        <FontAwesome name="arrow-left" size={32} color="#fff" />
         <Text style={styles.backText}>Back</Text>
       </TouchableOpacity>
 

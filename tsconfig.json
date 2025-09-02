@@ -9,9 +9,9 @@
     },
     "allowJs": true,
     "target": "es5",
-    "module": "commonjs",
+    "module": "Node16",
     "jsx": "react",
-    "moduleResolution": "node",
+    "moduleResolution": "node16",
     "skipLibCheck": true,
     "esModuleInterop": true
   },

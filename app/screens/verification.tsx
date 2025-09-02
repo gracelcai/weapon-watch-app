@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { View, Text, ActivityIndicator, Image, TouchableOpacity, StyleSheet, Alert } from "react-native";
 import { useRouter } from "expo-router";
 import { doc, onSnapshot, getDoc, updateDoc } from "firebase/firestore";
@@ -67,11 +67,14 @@ export default function VerificationScreen() {
   const [allowed, setAllowed] = useState<boolean | null>(null);
   const [imageUrl, setImageUrl] = useState<string>("");
   const [activeEvent, setActiveEvent] = useState<boolean>(false);
+  const [countdown, setCountdown] = useState<number | null>(null);
+  const timerRef = useRef<NodeJS.Timeout | null>(null);
 
    const handleConfirmThreat = async () => {
     alert("Threat confirmed! Authorities will be alerted.");
     setActiveEvent(true);
     await updateConfirmThreat('UMD', { 'Active Event': true });
+    resetCountdown();
 
     const snapshot = await getDoc(doc(db, "schools", "UMD"));
     const data = snapshot.data();
@@ -89,7 +92,6 @@ export default function VerificationScreen() {
             body: userData.isAdmin ? 'Officers en-route. All faculty must secure classrooms: lock/barricade doors, call 911 with updates (location, description), and account for all students via attendance rosters' : 'Shelter-in-place order in effect. Stay inside your current room, lock/barricade the door, turn off lights, move away from windows, and silence all devices. Do not open doors for anyone until you hear the official ALL-CLEAR.',
             data: { url: 'screens/notifications_student' },
             channelId: 'weapon_detected',
-            sticky: true,
             priority: 'high',
           };
           sendPushNotification(message);
@@ -98,6 +100,40 @@ export default function VerificationScreen() {
     }
     
   };
+
+const resetCountdown = () => {
+  if (timerRef.current) {
+    clearInterval(timerRef.current);
+    timerRef.current = null;
+  }
+  setCountdown(null);
+};
+
+useEffect(() => {
+  if (countdown === null) return;
+  if (timerRef.current) return; // already ticking
+
+  timerRef.current = setInterval(() => {
+    setCountdown((prev) => {
+      if (prev === null) return null;
+      if (prev <= 1) {
+        if (timerRef.current) {
+          clearInterval(timerRef.current);
+          timerRef.current = null;
+        }
+        return 0; // reached zero
+      }
+      return prev - 1;
+    });
+  }, 1000);
+
+  return () => {
+    if (timerRef.current) {
+      clearInterval(timerRef.current);
+      timerRef.current = null;
+    }
+  };
+}, [countdown]);
 
   useEffect(() => {
     const docRef = doc(db, "schools", "UMD");
@@ -118,10 +154,12 @@ export default function VerificationScreen() {
       }
 
       if (detectedCamId == ""){setImageUrl("");}
-      
 
       if (detectedCamId != "" && detectedCamId !== oldDetectID && !eventFlag) {
         setOldDetectID(detectedCamId);
+        const elapsedSec = Math.floor(( Date.now() - data?.detectedAt.toDate().getTime()) / 1000);
+        // Verifier has 20sec to confirm
+        setCountdown(20-elapsedSec);
 
         const userRefs: Array<any> = data!.users; // users is an array of DocumentReferences
         for (const userRef of userRefs) {
@@ -130,16 +168,15 @@ export default function VerificationScreen() {
             const userData = userSnap.data() as any;
             if (userData.expoPushToken != verifierData.expoPushToken) {
               const message = {
-              to: userData.expoPushToken,
-              sound: 'emergencysos.wav',
-              title: 'POTENTIAL THREAT DETECTED',
-              body: userData.expoPushToken == verifierData.expoPushToken ? 'Confirm Active Threat Event': 'Await further instructions',
-              data: { url: 'screens/notification_students' },
-              channelId: 'weapon_detected',
-              sticky: true,
-              priority: 'high',
-            };
-            sendPushNotification(message);
+                to: userData.expoPushToken,
+                sound: 'emergencysos.wav',
+                title: 'POTENTIAL THREAT DETECTED',
+                body: userData.expoPushToken == verifierData.expoPushToken ? 'Confirm Active Threat Event': 'Await further instructions',
+                data: { url: 'screens/notification_students' },
+                channelId: 'weapon_detected',
+                priority: 'high',
+              };
+              sendPushNotification(message);
             }
           }
         }
@@ -159,45 +196,88 @@ export default function VerificationScreen() {
     });
 
     // Cleanup the listener when the component unmounts
-    return () => unsubscribe();
-  }, []);
+    return () => {unsubscribe(); resetCountdown();}
+}, []);
 
-  useEffect(() => {
-    const checkUserVerification = async () => {
-      const uid = auth.currentUser?.uid;
-      if (!uid) {
-        Alert.alert("Error", "User not found. Please log in again.");
-        router.replace("/screens/login");
-        return;
-      }
-      try {
-        const userData = await getUser(uid) as any;
-        if (userData.isVerifier) {
-          setAllowed(true);
-        } else {
-          // User is not allowed to see this screen.
-          Alert.alert("Unauthorized", "You don't have verification permissions.");
-          setAllowed(false);
-          //router.replace("/screens/cameras");
-        }
-      } catch (error: any) {
-        console.error("Error fetching user data:", error);
-        Alert.alert("Error", "Unable to verify user permissions.");
+useEffect(() => {
+  const uid = auth.currentUser?.uid;
+  if (!uid) {
+    Alert.alert("Error", "User not found. Please log in again.");
+    router.replace("/screens/login");
+    return;
+  }
+
+  let firstCheck = true;
+
+  const userRef = doc(db, "users", uid);
+  const unsubscribe = onSnapshot(userRef, (snapshot) => {
+    if (snapshot.exists()) {
+      const userData = snapshot.data() as any;
+
+      if (userData.isVerifier) {
+        setAllowed(true);
+      } else {
         setAllowed(false);
-        router.replace("/screens/cameras");
+        if (firstCheck) {
+          // Case 1: user starts without verifier access
+          Alert.alert("Unauthorized", "You are not allowed to access this page.");
+          router.replace("/screens/tracking");
+        } else {
+          // Case 2: user had it, then lost it
+          Alert.alert("Access Revoked", "Your verification permissions have been removed.");
+          router.replace("/screens/tracking");
+        }
       }
-    };
+    } else {
+      setAllowed(false);
+      Alert.alert("Error", "User data not found.");
+      router.replace("/screens/login");
+    }
+
+    firstCheck = false;
+  });
+
+  return () => unsubscribe();
+}, [router]);
+
+  
+  // useEffect(() => {
+  //   const checkUserVerification = async () => {
+  //     const uid = auth.currentUser?.uid;
+  //     if (!uid) {
+  //       Alert.alert("Error", "User not found. Please log in again.");
+  //       router.replace("/screens/login");
+  //       return;
+  //     }
+  //     try {
+  //       const userData = await getUser(uid) as any;
+  //       if (userData.isVerifier) {
+  //         setAllowed(true);
+  //       } else {
+  //         // User is not allowed to see this screen.
+  //         Alert.alert("Unauthorized", "You don't have verification permissions.");
+  //         setAllowed(false);
+  //         //router.replace("/screens/cameras");
+  //       }
+  //     } catch (error: any) {
+  //       console.error("Error fetching user data:", error);
+  //       Alert.alert("Error", "Unable to verify user permissions.");
+  //       setAllowed(false);
+  //       router.replace("/screens/cameras");
+  //     }
+  //   };
 
 
-    checkUserVerification();
+  //   checkUserVerification();
 
-  }, [router]);
+  // }, [router]);
 
   const handleFalseAlert = async() => {
     alert("False alarm reported.");
     updateDoc(doc(db, 'schools', "UMD"), {'detected_cam_id': ""});
     updateConfirmThreat('UMD', {'Active Event': false});
     setOldDetectID("");
+    resetCountdown();
     setActiveEvent(false);
 
     const snapshot = await getDoc(doc(db, "schools", "UMD"));
@@ -214,7 +294,6 @@ export default function VerificationScreen() {
           title: 'FALSE ALERT',
           body: 'No threat detected.',
           channelId: 'weapon_detected',
-          sticky: true,
           priority: 'high',
         };
         sendPushNotification(message);
@@ -255,7 +334,6 @@ export default function VerificationScreen() {
                   title: 'END OF ACTIVE THREAT',
                   body: 'The active threat event has been resolved.',
                   channelId: 'weapon_detected',
-                  sticky: true,
                   priority: 'high',
                 };
                 sendPushNotification(message);
@@ -311,6 +389,13 @@ export default function VerificationScreen() {
       {imageUrl !== "" && (
         <>
           <Text style={styles.title}>Potential threat detected</Text>
+
+          {countdown !== null && countdown > 0 && (
+            <Text style={[styles.title, { color: "#FF5252" }]}>
+              You have {countdown}s to act
+            </Text>
+          )}
+
           {/* Threat Image */}
           <ImageViewer url={imageUrl}/>
 
@@ -324,18 +409,12 @@ export default function VerificationScreen() {
           </TouchableOpacity>
         </>
       )}
-      
-
-      {/* Verification Transfer Button */}
-      <TouchableOpacity style={styles.transferButton} onPress={() => router.push("/screens/verification_transfer")}>
-        <Text style={styles.transferButtonText}>TRANSFER</Text>
-      </TouchableOpacity>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#000", justifyContent: "center", alignItems: "center", padding: 16,paddingTop: 60,},
+  container: { flex: 1, backgroundColor: "#000", justifyContent: "center", alignItems: "center", padding: 16,paddingTop: 0,},
   loadingContainer: { flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: "#000" },
   title: { color: "#fff", fontSize: 20, fontWeight: "bold", marginBottom: 20 },
   title2: { color: "#fff", fontSize: 24, fontWeight: "bold", textAlign: "center", marginBottom: 10 },
@@ -344,8 +423,6 @@ const styles = StyleSheet.create({
   confirmButtonText: { color: "#fff", fontSize: 16, fontWeight: "bold" },
   falseButton: { backgroundColor: "#fff", padding: 15, width: "100%", alignItems: "center", borderRadius: 10 },
   falseButtonText: { color: "#000", fontSize: 16, fontWeight: "bold" },
-  transferButton: { marginTop: 20, alignSelf: "center", paddingBottom: 20},
-  transferButtonText: { color: "#fff", fontSize: 16},
   msg: { color: "#fff", fontSize: 18, textAlign: "center" },
   imageViewerContainer: {
     alignItems: "center",

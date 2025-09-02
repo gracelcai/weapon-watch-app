@@ -1,7 +1,9 @@
 import React, { useEffect, useState } from "react";
-import { View, Text, StyleSheet, Image, ScrollView, Button } from "react-native";
+import { View, Text, StyleSheet, Image, ScrollView, Button, ActivityIndicator } from "react-native";
 import MapView, { Marker, Circle, Polygon, Overlay } from "react-native-maps";
 import { useRef as reactUseRef } from "react";
+import { db } from '../../firebaseConfig'; // Import your Firebase config
+import { collection, getDocs, onSnapshot } from 'firebase/firestore';
 
 // Types
 type Camera = {
@@ -11,13 +13,14 @@ type Camera = {
   longitude: number;
   coverageRadius: number;
   detection: boolean;
+  floor: string;
 };
 
 type Floor = "floor1" | "floor2" | "floor3";
 
 type CameraData = {
   floor1: Camera[];
-  floor2: Camera[]
+  floor2: Camera[];
   floor3: Camera[];
 };
 
@@ -49,7 +52,6 @@ const floorBounds: Record<Floor, { northEast: { latitude: number; longitude: num
     southWest: { latitude: 38.99029118164155, longitude: -76.938594790733 },
   },
 };
-
 
 const roomPolygons: Room[] = [
   // FLOOR ONE 11111111
@@ -512,72 +514,81 @@ const roomPolygons: Room[] = [
     floor: "floor3",
     polygon: [
       { x: 0.705, y: 0.688 },
+      
       { x: 0.705, y: 0.790 },
       { x: 0.865, y: 0.790 },
       { x: 0.865, y: 0.688 },
     ],
   },
 ];
-
-
 export default function TrackingPage() {
   const [cameraData, setCameraData] = useState<Camera[]>([]);
   const [currentFloor, setCurrentFloor] = useState<Floor>("floor1");
-/*  const [mapRegion, setMapRegion] = useState({
-    latitude: 0,
-    longitude: 0,
-    latitudeDelta: 0.0008,
-    longitudeDelta: 0.0008,
-  });
-removing Region state*/ 
   const [shooterDetected, setShooterDetected] = useState<boolean>(false);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
   const mapRef = useRef<MapView | null>(null);
 
-  const cameraDataset: CameraData = {
-    floor1: [
-      {
-        id: "cam-1",
-        latitude: 38.99043,
-        longitude: -76.93835,
-        name: "CAM 1 / ENTRY",
-        coverageRadius: 2,
-        detection: true,
-      },
-      {
-        id: "cam-2",
-        latitude: 38.99041,
-        longitude: -76.938124,
-        name: "CAM 2 / EAST",
-        coverageRadius: 2,
-        detection: shooterDetected,
-      },
-    ],
-    floor2: [
-      {
-        id: "cam-3",
-        latitude: 38.990469102663894,
-        longitude: -76.93804510723639,
-        name: "CAM 3 / ENTRANCE",
-        coverageRadius: 2,
-        detection: true,
-      },
-    ],
-    floor3: [
-      /*{
-        id: "cam-6",
-        latitude: 38.99038542907674,
-        *longitude: -76.93845610473265,
-        name: "CAM 6 / HALLWAY",
-        coverageRadius: 2,
-        detection: true,
-      },*/
-    ],
-  };
+  // Fetch camera data from Firebase
+  useEffect(() => {
+    const fetchCameras = async () => {
+      try {
+        setLoading(true);
+        const camerasRef = collection(db, 'schools/UMD/cameras');
+        const snapshot = await getDocs(camerasRef);
+        
+        const cameras: Camera[] = [];
+        snapshot.forEach((doc) => {
+          const data = doc.data();
+          cameras.push({
+            id: doc.id,
+            name: data.name || 'Unnamed Camera',
+            latitude: data.latitude || 0,
+            longitude: data.longitude || 0,
+            coverageRadius: data.coverageRadius || 2,
+            detection: data.detected || false,
+            floor: 'floor' + data.floor || 'floor1'
+          });
+        });
+        
+        setCameraData(cameras);
+        setError(null);
+      } catch (err) {
+        console.error("Error fetching cameras:", err);
+        setError("Failed to load camera data");
+      } finally {
+        setLoading(false);
+      }
+    };
 
-useEffect(() => {
-    const floorCameras = cameraDataset[currentFloor];
-    setCameraData(floorCameras);
+    fetchCameras();
 
+    // Set up real-time listener for camera updates
+    const camerasRef = collection(db, 'schools/UMD/cameras');
+    const unsubscribe = onSnapshot(camerasRef, (snapshot) => {
+      const updatedCameras: Camera[] = [];
+      snapshot.forEach((doc) => {
+        const data = doc.data();
+        updatedCameras.push({
+          id: doc.id,
+          name: data.name || 'Unnamed Camera',
+          latitude: data.latitude || 0,
+          longitude: data.longitude || 0,
+          coverageRadius: data.coverageRadius || 2,
+          detection: data.detected || false,
+          floor: 'floor' + data.floor || 'floor1'
+        });
+      });
+      setCameraData(updatedCameras);
+    });
+
+    return () => unsubscribe();
+  }, []);
+
+  // Filter cameras for current floor
+  const floorCameras = cameraData.filter(cam => cam.floor === currentFloor);
+
+  useEffect(() => {
     const alertCam = floorCameras.find((cam) => cam.detection);
     const firstCam = alertCam || floorCameras[0];
 
@@ -588,23 +599,23 @@ useEffect(() => {
             latitude: firstCam.latitude,
             longitude: firstCam.longitude,
           },
-          pitch: 20, // rotates in the x direction
-          heading: 10, // rotates in the x/y
-          altitude: 120, // zoom level
-          zoom: 400, // no effect?
+          pitch: 20,
+          heading: 10,
+          altitude: 120,
+          zoom: 400,
         },
         { duration: 1000 }
       );
     }
-  }, [currentFloor, shooterDetected]);
+  }, [currentFloor, floorCameras]);
 
   const bounds = floorBounds[currentFloor];
   const toLatLng = (x: number, y: number) => {
-  const originLat = bounds.southWest.latitude;
-  const originLng = bounds.southWest.longitude;
-  const lat = originLat + y * (bounds.northEast.latitude - originLat); // ↑ increases
-  const lng = originLng + x * (bounds.northEast.longitude - originLng); // → increases
-  return { latitude: lat, longitude: lng };
+    const originLat = bounds.southWest.latitude;
+    const originLng = bounds.southWest.longitude;
+    const lat = originLat + y * (bounds.northEast.latitude - originLat);
+    const lng = originLng + x * (bounds.northEast.longitude - originLng);
+    return { latitude: lat, longitude: lng };
   };
 
   if (!bounds) return null;
@@ -612,11 +623,25 @@ useEffect(() => {
   const imageCenterLat = (bounds.southWest.latitude + bounds.northEast.latitude) / 2;
   const imageCenterLng = (bounds.southWest.longitude + bounds.northEast.longitude) / 2;
 
-  console.log("Overlay image:", floorImages[currentFloor]);
-  // console.log("Rendering polygon:", Room.name);
+  if (loading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#fff" />
+        <Text style={styles.loadingText}>Loading camera data...</Text>
+      </View>
+    );
+  }
 
+  if (error) {
+    return (
+      <View style={styles.errorContainer}>
+        <Text style={styles.errorText}>{error}</Text>
+        <Button title="Retry" onPress={() => window.location.reload()} />
+      </View>
+    );
+  }
 
- return (
+  return (
     <View style={styles.container}>
       <View style={styles.mapContainer}>
         <MapView
@@ -625,17 +650,14 @@ useEffect(() => {
           mapType="standard"
           initialCamera={{
             center: {
-              latitude:
-                cameraDataset[currentFloor][0]?.latitude ?? 38.9904,
-              longitude:
-                cameraDataset[currentFloor][0]?.longitude ?? -76.9383,
+              latitude: floorCameras[0]?.latitude ?? 38.9904,
+              longitude: floorCameras[0]?.longitude ?? -76.9383,
             },
             pitch: 15,
             heading: 60,
             altitude: 70,
-            zoom: 800, // no effect?
+            zoom: 800,
           }}
-          // does not exist? tiltEnabled={true}
           rotateEnabled={true}
         >
           <Overlay
@@ -645,7 +667,6 @@ useEffect(() => {
               [bounds.southWest.latitude, bounds.southWest.longitude],
               [bounds.northEast.latitude, bounds.northEast.longitude],
             ]}
-            // zIndex={4}
           />
 
           {roomPolygons
@@ -663,7 +684,7 @@ useEffect(() => {
               />
             ))}
 
-          {cameraData.map((cam) => (
+          {floorCameras.map((cam) => (
             <React.Fragment key={cam.id}>
               <Marker
                 coordinate={{
@@ -671,7 +692,9 @@ useEffect(() => {
                   longitude: cam.longitude,
                 }}
                 title={cam.name}
+                description={cam.detection ? "ALERT: Weapon detected" : "No threats detected"}
                 zIndex={4}
+                pinColor={cam.detection ? "red" : "green"}
               />
               <Circle
                 center={{
@@ -719,23 +742,59 @@ useEffect(() => {
         </View>
 
         <View style={styles.cameraInfoGroup}>
-          <Text style={styles.sectionTitle}>Active Cameras</Text>
+          <Text style={styles.sectionTitle}>Active Cameras ({floorCameras.length})</Text>
           <ScrollView style={styles.cameraList}>
-            {cameraData.map((cam) => (
-              <View key={cam.id} style={styles.cameraItem}>
-                <Text style={styles.cameraText}>
-                  {cam.name} {cam.detection ? "🚨 ALERT" : "✅ OK"}
-                </Text>
-              </View>
-            ))}
+            {floorCameras.length === 0 ? (
+              <Text style={styles.noCamerasText}>No cameras found on this floor</Text>
+            ) : (
+              floorCameras.map((cam) => (
+                <View key={cam.id} style={[
+                  styles.cameraItem,
+                  cam.detection ? styles.alertCameraItem : styles.normalCameraItem
+                ]}>
+                  <Text style={styles.cameraName}>{cam.name}</Text>
+                  <Text style={[
+                    styles.cameraStatus,
+                    cam.detection ? styles.alertStatus : styles.normalStatus
+                  ]}>
+                    {cam.detection ? "🚨 WEAPON DETECTED" : "✅ NO THREATS"}
+                  </Text>
+                  <Text style={styles.cameraCoords}>
+                    Lat: {cam.latitude.toFixed(6)}, Lng: {cam.longitude.toFixed(6)}
+                  </Text>
+                </View>
+              ))
+            )}
           </ScrollView>
         </View>
       </View>
     </View>
   );
 }
+
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#000", paddingTop: 40 },
+  container: { flex: 1, backgroundColor: "#000", paddingTop: 0 },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#000'
+  },
+  loadingText: {
+    color: '#fff',
+    marginTop: 10
+  },
+  errorContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#000'
+  },
+  errorText: {
+    color: 'red',
+    fontSize: 16,
+    marginBottom: 20
+  },
   title: { color: "#fff", fontSize: 24, fontWeight: "bold", textAlign: "center", marginBottom: 16 },
   mapContainer: { height: "50%", borderRadius: 10, margin: 16, overflow: "hidden" },
   map: { flex: 1, zIndex: 2 },
@@ -743,9 +802,16 @@ const styles = StyleSheet.create({
   floorButtonGroup: { flex: 1, paddingRight: 8, justifyContent: "flex-start" },
   cameraInfoGroup: { flex: 2, paddingLeft: 8 },
   sectionTitle: { color: "#fff", fontSize: 20, fontWeight: "bold", marginBottom: 12 },
-  cameraList: { backgroundColor: "#111", borderRadius: 8, padding: 8 },
-  cameraItem: { backgroundColor: "#333", padding: 12, marginVertical: 6, borderRadius: 8 },
-  cameraText: { color: "#fff", fontSize: 16 },
+  cameraList: { backgroundColor: "#111", borderRadius: 8, padding: 8, maxHeight: 300 },
+  cameraItem: { padding: 12, marginVertical: 6, borderRadius: 8 },
+  normalCameraItem: { backgroundColor: "#333" },
+  alertCameraItem: { backgroundColor: "#660000" },
+  cameraName: { color: "#fff", fontSize: 16, fontWeight: "bold" },
+  cameraStatus: { fontSize: 14, fontWeight: "bold", marginTop: 4 },
+  normalStatus: { color: "#00ff00" },
+  alertStatus: { color: "#ff0000" },
+  cameraCoords: { color: "#ccc", fontSize: 12, marginTop: 4 },
+  noCamerasText: { color: "#ccc", textAlign: "center", padding: 20 },
   floorButtonContainer: {
     flexDirection: "column",
     justifyContent: "space-between",

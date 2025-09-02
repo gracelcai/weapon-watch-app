@@ -137,7 +137,7 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "#000",
     paddingHorizontal: 16,
-    paddingTop: 52, // status-bar offset
+    paddingTop: 0, // status-bar offset
   },
   title: {
     color: "#fff",
