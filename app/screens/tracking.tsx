@@ -1,7 +1,6 @@
 import React, { useEffect, useState, useRef } from "react";
-import { View, Text, StyleSheet, ScrollView, Button, ActivityIndicator } from "react-native";
-import MapView, { Polygon, Overlay } from "react-native-maps";
-import { useRef as reactUseRef } from "react";
+import { View, Text, StyleSheet, ScrollView, Button, ActivityIndicator, Platform } from "react-native";
+import MapView, { Polygon, Overlay, PROVIDER_GOOGLE } from "react-native-maps";
 import { db } from '../../firebaseConfig';
 import { collection, onSnapshot } from 'firebase/firestore';
 
@@ -493,7 +492,7 @@ const roomPolygons: Room[] = [
   },
   {
     id: "room-3193",
-    name: "West Stairwell",
+    name: "West Stairwell 1",
     floor: "floor3",
     polygon: [
       { x: 0.144, y: 0.790 },
@@ -504,7 +503,7 @@ const roomPolygons: Room[] = [
   },
   {
     id: "elevator-w3",
-    name: "West Stairwell",
+    name: "West Stairwell 2",
     floor: "floor3",
     polygon: [
       { x: 0.144, y: 0.700 },
@@ -566,10 +565,8 @@ export default function TrackingPage() {
   const [loading, setLoading] = useState<boolean>(true);
   const mapRef = useRef<MapView | null>(null);
 
-  // Fetch camera data from Firebase with real-time updates
   useEffect(() => {
     setLoading(true);
-    
     const camerasRef = collection(db, 'schools/UMD/cameras');
     const unsubscribe = onSnapshot(camerasRef, (snapshot) => {
       const cameras: Camera[] = [];
@@ -579,35 +576,22 @@ export default function TrackingPage() {
           id: doc.id,
           name: data.name || 'Unnamed Camera',
           detected: data.detected || false,
-          floor: 'floor'+data.floor || 'floor1'
+          floor: 'floor' + data.floor || 'floor1',
         });
       });
-      
       setCameraData(cameras);
       setLoading(false);
     });
-
     return () => unsubscribe();
   }, []);
 
-  // Filter cameras for current floor
   const floorCameras = cameraData.filter(cam => cam.floor === currentFloor);
-
-  // Get detected camera IDs for the current floor
-  const detectedCameraIds = floorCameras
-    .filter(cam => cam.detected)
-    .map(cam => cam.name);
-
+  const detectedCameraIds = floorCameras.filter(cam => cam.detected).map(cam => cam.name);
   const bounds = floorBounds[currentFloor];
-  const toLatLng = (x: number, y: number) => {
-    const originLat = bounds.southWest.latitude;
-    const originLng = bounds.southWest.longitude;
-    const lat = originLat + y * (bounds.northEast.latitude - originLat);
-    const lng = originLng + x * (bounds.northEast.longitude - originLng);
-    return { latitude: lat, longitude: lng };
-  };
-
-  if (!bounds) return null;
+  const toLatLng = (x: number, y: number) => ({
+    latitude: bounds.southWest.latitude + y * (bounds.northEast.latitude - bounds.southWest.latitude),
+    longitude: bounds.southWest.longitude + x * (bounds.northEast.longitude - bounds.southWest.longitude),
+  });
 
   if (loading) {
     return (
@@ -624,18 +608,18 @@ export default function TrackingPage() {
         <MapView
           ref={mapRef}
           style={StyleSheet.absoluteFill}
-          mapType="standard"
+          provider={Platform.OS === 'ios' ? undefined : PROVIDER_GOOGLE}
+          pitchEnabled={Platform.OS === 'ios' ? false : true}
           initialCamera={{
             center: {
               latitude: (bounds.southWest.latitude + bounds.northEast.latitude) / 2,
               longitude: (bounds.southWest.longitude + bounds.northEast.longitude) / 2,
             },
-            pitch: 15,
-            heading: 60,
+            pitch: 20,        // starts with a slight tilt
+            heading: 0,
             altitude: 70,
-            zoom: 800,
+            zoom: 20,
           }}
-          rotateEnabled={true}
         >
           <Overlay
             key={currentFloor}
@@ -646,24 +630,18 @@ export default function TrackingPage() {
             ]}
           />
 
-          {/* Render all room polygons */}
-          {roomPolygons
-            .filter((room) => room.floor === currentFloor)
-            .map((room) => {
-              // Check if this room has a detected camera
-              const isDetected = detectedCameraIds.includes(room.name);
-              
-              return (
-                <Polygon
-                  key={room.name}
-                  coordinates={room.polygon.map((p) => toLatLng(p.x, p.y))}
-                  fillColor={isDetected ? "rgba(255, 0, 0, 0.7)" : "rgba(0, 0, 255, 0.3)"}
-                  strokeColor={isDetected ? "rgba(255, 255, 255, 0.7)" : "rgba(255, 255, 255, 0.7)"}
-                  strokeWidth={isDetected ? 3 : 2}
-                  zIndex={isDetected ? 5 : 3}
-                />
-              );
-            })}
+          {roomPolygons.filter(room => room.floor === currentFloor).map(room => {
+            const isDetected = detectedCameraIds.includes(room.name);
+            return (
+              <Polygon
+                key={room.name}
+                coordinates={room.polygon.map(p => toLatLng(p.x, p.y))}
+                fillColor={isDetected ? "rgba(255, 0, 0, 0.7)" : "rgba(0, 0, 255, 0.5)"}
+                strokeColor={isDetected ? "rgba(255, 255, 255, 0.7)" : "rgba(255, 255, 255, 0.7)"}
+                strokeWidth={isDetected ? 3 : 2}
+              />
+            );
+          })}
         </MapView>
       </View>
 
