@@ -14,8 +14,8 @@ exports.notifyOnDetection = functions.firestore
       const oldId = before.detected_cam_id || "";
       const newId = after.detected_cam_id || "";
 
-      // Only trigger if a new detection occurred
-      if (newId && newId !== oldId) {
+      // Only trigger if detected_cam_id goes from nothing to something
+      if (newId && !oldId) {
         await change.after.ref.update({
           detectedAt: admin.firestore.FieldValue.serverTimestamp(),
         });
@@ -43,7 +43,7 @@ exports.notifyOnDetection = functions.firestore
         }
 
         // --- Step 2: Wait 10 seconds, then check again ---
-        await new Promise((resolve) => setTimeout(resolve, 20000));
+        await new Promise((resolve) => setTimeout(resolve, 22000));
 
         // Re-fetch document to see if resolved
         const schoolSnap = await change.after.ref.get();

@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef } from "react";
 import { View, Text, ActivityIndicator, Image, TouchableOpacity, StyleSheet, Alert } from "react-native";
 import { useRouter } from "expo-router";
-import { doc, onSnapshot, getDoc, updateDoc } from "firebase/firestore";
+import { doc, onSnapshot, getDoc, updateDoc, collection, getDocs } from "firebase/firestore";
 import { auth, db, storage } from "../../firebaseConfig";
 import { getUser } from "../../services/firestore";
 import { updateConfirmThreat } from '../../services/firestore';
@@ -313,31 +313,96 @@ useEffect(() => {
           text: "Yes",
           style: "destructive",
           onPress: async () => {
-            // Your existing endEvent logic:
-            await updateDoc(doc(db, 'schools', 'UMD'), { 
-              detected_cam_id: "", 
-              'Active Event': false 
-            });
-            await updateConfirmThreat('UMD', { 'Active Event': false });
-            setImageUrl("");
-            setOldDetectID("");
-            setActiveEvent(false);
+            try {
+              // Show success message and navigate
+              Alert.alert(
+                "Success", 
+                "Verifier privileges have been transferred back to the Primary Verifier",
+              );
+              router.replace("/screens/tracking") 
 
-            const snapshot = await getDoc(doc(db, "schools", "UMD"));
-            const userRefs = snapshot.data()?.users || [];
-            for (const ref of userRefs) {
-              const userData = (await getDoc(ref)).data() as any;
-              if (userData.expoPushToken) {
-                const message = {
-                  to: userData.expoPushToken,
-                  sound: 'emergencysos.wav',
-                  title: 'END OF ACTIVE THREAT',
-                  body: 'The active threat event has been resolved.',
-                  channelId: 'weapon_detected',
-                  priority: 'high',
-                };
-                sendPushNotification(message);
+              // Get references to the school document and cameras collection
+              const schoolRef = doc(db, 'schools', 'UMD');
+              const camerasRef = collection(db, 'schools/UMD/cameras');
+              
+              // Reset all cameras' detected field to false
+              const camerasSnapshot = await getDocs(camerasRef);
+              const updateCameraPromises = camerasSnapshot.docs.map(async (cameraDoc) => {
+                await updateDoc(doc(db, 'schools/UMD/cameras', cameraDoc.id), {
+                  detected: false
+                });
+              });
+              
+              // Wait for all camera updates to complete
+              await Promise.all(updateCameraPromises);
+              
+              // Get verifier information
+              const schoolSnapshot = await getDoc(schoolRef);
+              const schoolData = schoolSnapshot.data();
+              const primaryVerifierRef = schoolData?.Verifier;
+              const secondaryVerifierRef = schoolData?.SecondaryVerifier;
+              
+              // Transfer verifier privileges
+              const updateVerifierPromises = [];
+              
+              if (primaryVerifierRef) {
+                const primaryVerifierDoc = await getDoc(primaryVerifierRef);
+                if (primaryVerifierDoc.exists()) {
+                  updateVerifierPromises.push(
+                    updateDoc(primaryVerifierRef, {
+                      isVerifier: true
+                    })
+                  );
+                }
               }
+
+              if (secondaryVerifierRef) {
+                const secondaryVerifierDoc = await getDoc(secondaryVerifierRef);
+                if (secondaryVerifierDoc.exists()) {
+                  updateVerifierPromises.push(
+                    updateDoc(secondaryVerifierRef, {
+                      isVerifier: false
+                    })
+                  );
+                }
+              }
+              
+              // Wait for verifier updates to complete
+              await Promise.all(updateVerifierPromises);
+              
+              // Update school document
+              await updateDoc(schoolRef, { 
+                detected_cam_id: "", 
+                'Active Event': false 
+              });
+              
+              await updateConfirmThreat('UMD', { 'Active Event': false });
+              
+              // Reset local state
+              setImageUrl("");
+              setOldDetectID("");
+              setActiveEvent(false);
+              
+              // Send notifications
+              const userRefs = schoolData?.users || [];
+              for (const ref of userRefs) {
+                const userData = (await getDoc(ref)).data() as any;
+                if (userData.expoPushToken) {
+                  const message = {
+                    to: userData.expoPushToken,
+                    sound: 'emergencysos.wav',
+                    title: 'END OF ACTIVE THREAT',
+                    body: 'The active threat event has been resolved.',
+                    channelId: 'weapon_detected',
+                    priority: 'high',
+                  };
+                  sendPushNotification(message);
+                }
+              }
+              
+            } catch (error) {
+              console.error("Error ending active event:", error);
+              Alert.alert("Error", "Failed to end active event. Please try again.");
             }
           },
         },
