@@ -280,6 +280,32 @@ useEffect(() => {
     resetCountdown();
     setActiveEvent(false);
 
+    // Get references to the school document and cameras collection
+    const schoolRef = doc(db, 'schools', 'UMD');
+    const camerasRef = collection(db, 'schools/UMD/cameras');
+
+    // Clear school-level fields
+    await updateDoc(schoolRef, {
+      detected_cam_id: "",
+      'Active Event': false,
+      embeddings: deleteField(),         // removes the array
+      detectedAt: deleteField()  // removes the timestamp
+    });
+    
+    // Reset all cameras' detected field to false
+    const camerasSnapshot = await getDocs(camerasRef);
+    const updateCameraPromises = camerasSnapshot.docs.map(cameraDoc => {
+      const cameraRef = doc(db, 'schools/UMD/cameras', cameraDoc.id);
+      return updateDoc(cameraRef, {
+        detected: false,
+        shooter_detected: false,
+        bboxes: deleteField() // ← This removes the field entirely
+      });
+    });
+    
+    // Wait for all camera updates to complete
+    await Promise.all(updateCameraPromises);
+
     const snapshot = await getDoc(doc(db, "schools", "UMD"));
     const data = snapshot.data();
     const userRefs: Array<any> = data!.users; // users is an array of DocumentReferences
@@ -332,6 +358,7 @@ useEffect(() => {
                 const cameraRef = doc(db, 'schools/UMD/cameras', cameraDoc.id);
                 return updateDoc(cameraRef, {
                   detected: false,
+                  shooter_detected: false,
                   bboxes: deleteField() // ← This removes the field entirely
                 });
               });

@@ -2,7 +2,7 @@ import React, { useEffect, useState, useRef } from "react";
 import { View, Text, StyleSheet, ScrollView, Button, ActivityIndicator, Platform } from "react-native";
 import MapView, { Polygon, Overlay, PROVIDER_GOOGLE } from "react-native-maps";
 import { db } from '../../firebaseConfig';
-import { collection, onSnapshot } from 'firebase/firestore';
+import { collection, doc, onSnapshot } from 'firebase/firestore';
 
 // Types
 type Camera = {
@@ -563,12 +563,15 @@ export default function TrackingPage() {
   const [cameraData, setCameraData] = useState<Camera[]>([]);
   const [currentFloor, setCurrentFloor] = useState<Floor>("floor1");
   const [loading, setLoading] = useState<boolean>(true);
+  const [activeEvent, setActiveEvent] = useState<boolean>(false);
   const mapRef = useRef<MapView | null>(null);
 
   useEffect(() => {
     setLoading(true);
+    
+    // Listen for camera data
     const camerasRef = collection(db, 'schools/UMD/cameras');
-    const unsubscribe = onSnapshot(camerasRef, (snapshot) => {
+    const unsubscribeCameras = onSnapshot(camerasRef, (snapshot) => {
       const cameras: Camera[] = [];
       snapshot.forEach((doc) => {
         const data = doc.data();
@@ -582,7 +585,22 @@ export default function TrackingPage() {
       setCameraData(cameras);
       setLoading(false);
     });
-    return () => unsubscribe();
+
+    // Listen for active event status from schools/UMD document
+    const schoolRef = doc(db, 'schools', 'UMD');
+    const unsubscribeActiveEvent = onSnapshot(schoolRef, (docSnapshot) => {
+      if (docSnapshot.exists()) {
+        const data = docSnapshot.data();
+        setActiveEvent(data['Active Event'] || false);
+      } else {
+        setActiveEvent(false);
+      }
+    });
+
+    return () => {
+      unsubscribeCameras();
+      unsubscribeActiveEvent();
+    };
   }, []);
 
   const floorCameras = cameraData.filter(cam => cam.floor === currentFloor);
@@ -604,6 +622,13 @@ export default function TrackingPage() {
 
   return (
     <View style={styles.container}>
+      {/* Active Event Banner */}
+      {activeEvent && (
+        <View style={styles.activeEventBanner}>
+          <Text style={styles.activeEventText}>ACTIVE EVENT ONGOING</Text>
+        </View>
+      )}
+      
       <View style={styles.mapContainer}>
         <MapView
           ref={mapRef}
@@ -615,7 +640,7 @@ export default function TrackingPage() {
               latitude: (bounds.southWest.latitude + bounds.northEast.latitude) / 2,
               longitude: (bounds.southWest.longitude + bounds.northEast.longitude) / 2,
             },
-            pitch: 20,        // starts with a slight tilt
+            pitch: 20,
             heading: 0,
             altitude: 70,
             zoom: 20,
@@ -632,13 +657,27 @@ export default function TrackingPage() {
 
           {roomPolygons.filter(room => room.floor === currentFloor).map(room => {
             const isDetected = detectedCameraIds.includes(room.name);
+            
+            // Determine fill color based on active event and detection status
+            let fillColor;
+            if (isDetected) {
+              fillColor = "rgba(255, 0, 0, 0.7)"; // Yellow for active event
+            } 
+            else {
+              if (activeEvent)
+              fillColor = "rgba(212, 212, 52, 0.67)"; // Red for detected threat
+              else {
+              fillColor = "rgba(0, 255, 0, 0.2)"; // Green for normal
+              }
+            }
+
             return (
               <Polygon
                 key={room.name}
                 coordinates={room.polygon.map(p => toLatLng(p.x, p.y))}
-                fillColor={isDetected ? "rgba(255, 0, 0, 0.7)" : "rgba(0, 0, 255, 0.5)"}
-                strokeColor={isDetected ? "rgba(255, 255, 255, 0.7)" : "rgba(255, 255, 255, 0.7)"}
-                strokeWidth={isDetected ? 3 : 2}
+                fillColor={fillColor}
+                strokeColor={"rgba(255, 255, 255, 0.7)"}
+                strokeWidth={isDetected ? 4 : 2}
               />
             );
           })}
@@ -656,22 +695,23 @@ export default function TrackingPage() {
             />
             <Button
               title="Floor 2"
-              onPress={() => setCurrentFloor("floor2")}
+              // onPress={() => setCurrentFloor("floor2")}
               color={currentFloor === "floor2" ? "blue" : "gray"}
             />
             <Button
               title="Floor 3"
-              onPress={() => setCurrentFloor("floor3")}
+              // onPress={() => setCurrentFloor("floor3")}
               color={currentFloor === "floor3" ? "blue" : "gray"}
             />
           </View>
         </View>
 
         <View style={styles.cameraInfoGroup}>
-          <Text style={styles.sectionTitle}>
-            {detectedCameraIds.length > 0 
-              ? `🚨 THREAT DETECTED (${detectedCameraIds.length})` 
-              : "✅ NO ACTIVE THREATS"}
+          <Text style={[
+            styles.sectionTitle
+          ]}>
+            {detectedCameraIds.length > 0 ? `🚨 THREAT DETECTED (${detectedCameraIds.length})` 
+: "✅ NO ACTIVE THREATS"}
           </Text>
           <ScrollView style={styles.cameraList}>
             {detectedCameraIds.length === 0 ? (
@@ -705,6 +745,37 @@ const styles = StyleSheet.create({
   loadingText: {
     color: '#fff',
     marginTop: 10
+  },
+  // Active Event Banner
+  activeEventBanner: {
+    padding: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  activeEventText: {
+    color: '#dc2323ff',
+    fontSize: 22,
+    fontWeight: 'bold',
+  },
+  // Active event status item
+  activeEventItem: {
+    backgroundColor: "#333300",
+    padding: 16,
+    borderRadius: 8,
+    alignItems: 'center',
+  },
+  activeEventStatus: {
+    color: "#ffcc00",
+    fontSize: 16,
+    fontWeight: "bold",
+    textAlign: 'center',
+    marginBottom: 8,
+  },
+  activeEventInstruction: {
+    color: "#ffcc00",
+    fontSize: 14,
+    textAlign: 'center',
+    fontStyle: 'italic',
   },
   title: { color: "#fff", fontSize: 24, fontWeight: "bold", textAlign: "center", marginBottom: 16 },
   mapContainer: { height: "50%", borderRadius: 10, margin: 16, overflow: "hidden" },
