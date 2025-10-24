@@ -1,50 +1,7 @@
-# Weapon Watch <img width="70" height="50" alt="image" src="https://github.com/user-attachments/assets/1d48ed25-1189-4cf0-bd46-1754d0ba2ad4" />
+# Weapon Watch <img width="40" height="30" alt="image" src="https://github.com/user-attachments/assets/1d48ed25-1189-4cf0-bd46-1754d0ba2ad4" />
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+Weapon Watch is an AI-powered, real-time weapon detection and emergency alert system, designed to protect K–12 schools from active shooter threats. Our system uses school-installed IP security cameras combined with advanced AI models to detect firearms. When a threat is identified, the system sends alerts directly to school administrators and law enforcement through an easy-to-use mobile app. The app also provides real-time location tracking of suspects through camera integration and a school floor plan/map. In its most advanced form, Weapon Watch can integrate a non-voice audio recognition module that detects gunshots, identifies the weapon type and caliber, and triangulates the shooter’s position without using facial or voice recognition.
 
-## Get started
+Our solution is designed for maximum safety and minimal disruption. It is discreet – unlike traditional metal detectors or access control; It’s scalable – easy to install on a large number of school cameras; And, it’s privacy-focused – our AI does not store faces or voices, and we use a synthetic proprietary dataset to avoid copyright violations and bias. In addition to our technology, the Weapon Watch team provides extensive post-installation services including in-person setup, remote support, ongoing software updates, and manual threat verification. The long-term vision of Weapon Watch is to create a standardized emergency detection and response platform deployable not just in schools, but in universities, malls, stadiums, and public transportation hubs. However, our initial focus remains on K–12 school districts with high risk and active funding.
 
-1. Install dependencies
-
-   ```bash
-   npm install
-   ```
-
-2. Start the app
-
-   ```bash
-    npx expo start
-   ```
-
-In the output, you'll find options to open the app in a
-
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
-
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
-
-## Get a fresh project
-
-When you're ready, run:
-
-```bash
-npm run reset-project
-```
-
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
-
-## Learn more
-
-To learn more about developing your project with Expo, look at the following resources:
-
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
-
-## Join the community
-
-Join our community of developers creating universal apps.
-
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+This Github repository contains the main source code of our mobile app. 
