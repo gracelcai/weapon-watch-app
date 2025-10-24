@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef } from "react";
 import { View, Text, ActivityIndicator, Image, TouchableOpacity, StyleSheet, Alert } from "react-native";
 import { useRouter } from "expo-router";
-import { doc, onSnapshot, getDoc, updateDoc, collection, getDocs, deleteField } from "firebase/firestore";
+import { doc, onSnapshot, getDoc, updateDoc, collection, getDocs, deleteField, serverTimestamp } from "firebase/firestore";
 import { auth, db, storage } from "../../firebaseConfig";
 import { getUser } from "../../services/firestore";
 import { updateConfirmThreat } from '../../services/firestore';
@@ -156,31 +156,6 @@ useEffect(() => {
       if (detectedCamId == ""){setImageUrl("");}
 
       if (detectedCamId != "" && detectedCamId !== oldDetectID && !eventFlag) {
-        setOldDetectID(detectedCamId);
-        const elapsedSec = Math.floor(( Date.now() - data?.detectedAt.toDate().getTime()) / 1000);
-        // Verifier has 20sec to confirm
-        setCountdown(20-elapsedSec);
-
-        const userRefs: Array<any> = data!.users; // users is an array of DocumentReferences
-        for (const userRef of userRefs) {
-          const userSnap = await getDoc(userRef);
-          if (userSnap.exists()) {
-            const userData = userSnap.data() as any;
-            if (userData.expoPushToken != verifierData.expoPushToken) {
-              const message = {
-                to: userData.expoPushToken,
-                sound: 'emergencysos.wav',
-                title: 'POTENTIAL THREAT DETECTED',
-                body: userData.expoPushToken == verifierData.expoPushToken ? 'Confirm Active Threat Event': 'Await further instructions',
-                data: { url: 'screens/notification_students' },
-                channelId: 'weapon_detected',
-                priority: 'high',
-              };
-              sendPushNotification(message);
-            }
-          }
-        }
-
         try {
           //const imgName = "frame_for_verifier_" + detectedCamId + ".jpg";
           const imgName = data?.firebase_storage_path;
@@ -191,6 +166,33 @@ useEffect(() => {
         } catch (err) {
           // console.error("Error fetching image:", err);
         }
+        
+        setOldDetectID(detectedCamId);
+        const elapsedSec = Math.floor(( Date.now() - data?.detectedAt.toDate().getTime()) / 1000);
+        // Verifier has 20sec to confirm
+        setCountdown(20-elapsedSec);
+
+        // const userRefs: Array<any> = data!.users; // users is an array of DocumentReferences
+        // for (const userRef of userRefs) {
+        //   const userSnap = await getDoc(userRef);
+        //   if (userSnap.exists()) {
+        //     const userData = userSnap.data() as any;
+        //     if (userData.expoPushToken) {
+        //       const message = {
+        //         to: userData.expoPushToken,
+        //         sound: 'emergencysos.wav',
+        //         title: 'POTENTIAL THREAT DETECTED',
+        //         body: userData.isVerifier ? 'Confirm Active Threat Event': 'Await further instructions',
+        //         data: { url: 'screens/notification_students' },
+        //         channelId: 'weapon_detected',
+        //         priority: 'high',
+        //       };
+        //       sendPushNotification(message);
+        //     }
+        //   }
+        // }
+
+        
         // For example, navigate to a different screen or display an alert
       }
     });
@@ -272,24 +274,20 @@ useEffect(() => {
 
   // }, [router]);
 
-  const handleFalseAlert = async() => {
+const handleFalseAlert = async() => {
     alert("False alarm reported.");
-    updateDoc(doc(db, 'schools', "UMD"), {'detected_cam_id': ""});
-    updateConfirmThreat('UMD', {'Active Event': false});
-    setOldDetectID("");
-    resetCountdown();
-    setActiveEvent(false);
-
+    
     // Get references to the school document and cameras collection
     const schoolRef = doc(db, 'schools', 'UMD');
     const camerasRef = collection(db, 'schools/UMD/cameras');
 
-    // Clear school-level fields
+    // Clear school-level fields AND set falseAlertAt timestamp
     await updateDoc(schoolRef, {
       detected_cam_id: "",
       'Active Event': false,
+      falseAlertAt: serverTimestamp(), // ← ADDED THIS LINE
       embeddings: deleteField(),         // removes the array
-      detectedAt: deleteField()  // removes the timestamp
+      detectedAt: deleteField()          // removes the timestamp
     });
     
     // Reset all cameras' detected field to false
@@ -305,6 +303,39 @@ useEffect(() => {
     
     // Wait for all camera updates to complete
     await Promise.all(updateCameraPromises);
+
+    // Transfer verifier privileges
+    // Get verifier information
+    const schoolSnapshot = await getDoc(schoolRef);
+    const schoolData = schoolSnapshot.data();
+    const primaryVerifierRef = schoolData?.Verifier;
+    const secondaryVerifierRef = schoolData?.SecondaryVerifier;
+    const updateVerifierPromises = [];
+    
+    if (primaryVerifierRef) {
+      const primaryVerifierDoc = await getDoc(primaryVerifierRef);
+      if (primaryVerifierDoc.exists()) {
+        updateVerifierPromises.push(
+          updateDoc(primaryVerifierRef, {
+            isVerifier: true
+          })
+        );
+      }
+    }
+
+    if (secondaryVerifierRef) {
+      const secondaryVerifierDoc = await getDoc(secondaryVerifierRef);
+      if (secondaryVerifierDoc.exists()) {
+        updateVerifierPromises.push(
+          updateDoc(secondaryVerifierRef, {
+            isVerifier: false
+          })
+        );
+      }
+    }
+    
+    // Wait for verifier updates to complete
+    await Promise.all(updateVerifierPromises);
 
     const snapshot = await getDoc(doc(db, "schools", "UMD"));
     const data = snapshot.data();
@@ -326,6 +357,13 @@ useEffect(() => {
         }
       }
     }
+
+    // Update local state (moved to end to ensure server operations complete first)
+    updateConfirmThreat('UMD', {'Active Event': false});
+    setOldDetectID("");
+    resetCountdown();
+    setActiveEvent(false);
+    
     // Add API call to log false alert
   };
 
