@@ -1,4 +1,4 @@
-# Welcome to your Expo app 👋
+# Weapon Watch <img width="70" height="50" alt="image" src="https://github.com/user-attachments/assets/1d48ed25-1189-4cf0-bd46-1754d0ba2ad4" />
 
 This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
 
