@@ -73,9 +73,9 @@ export default function LoginScreen() {
       const userData = await getUser(uid) as { isAdmin: boolean };
 
       if (userData.isAdmin) {
-        router.push("/screens/cameras");
+        router.push("/screens/tracking");
       } else {
-        router.push("/screens/notifications_student");
+        router.push("/screens/notifications_admin");
       }
     } catch (err: any) {
       Alert.alert("Login Error", err.message);

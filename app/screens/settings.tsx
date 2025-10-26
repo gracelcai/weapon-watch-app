@@ -3,7 +3,7 @@ import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert } from "reac
 import { useRouter } from "expo-router";
 import { FontAwesome } from "@expo/vector-icons";
 import { auth, db } from '../../firebaseConfig';
-import { updateProfile, updateEmail, updatePassword  } from 'firebase/auth';
+import { updateProfile, updateEmail, updatePassword, signOut } from 'firebase/auth';
 import { doc, getDoc, updateDoc } from 'firebase/firestore';
 import { getUser } from '../../services/firestore';
 
@@ -17,28 +17,40 @@ export default function Settings() {
 
   const [schoolId, setSchoolId] = useState('');
   const [role, setRole] = useState("");
+  const [isVerifier, setIsVerifier] = useState(false); // New state for verifier status
+  const [loading, setLoading] = useState(true); // Loading state
   
   // pre-fill the form
   useEffect(() => {
     if (user) {
-      setName(user.displayName || "");
+      setName(user.name || "");
       setEmail(user.email || "");
 
       const fetchUserData = async () => {
         try {
+          setLoading(true);
           const uid = auth.currentUser?.uid;
           if (!uid) throw new Error("User not found");
-          const userData = (await getUser(uid)) as { isAdmin: boolean; isVerifier: boolean; schoolId?: string };
-          setSchoolId(userData.schoolId || "");
+          const userData = (await getUser(uid)) as { 
+            name: string
+            isAdmin: boolean; 
+            isVerifier: boolean; 
+          };
+          
+          setName(userData.name || "");
+          setIsVerifier(userData.isVerifier || false); // Set verifier status
+          
           if (userData.isAdmin) {
             setRole("Admin");
           } else if (userData.isVerifier) {
-              setRole("Admin & Verifier");
+            setRole("Admin & Verifier");
           } else {
             setRole("Student/Faculty");
           }
         } catch (error: any) {
           console.error("Error fetching user data:", error);
+        } finally {
+          setLoading(false);
         }
       };
       fetchUserData();
@@ -46,14 +58,35 @@ export default function Settings() {
   }, [user]);
 
   const handleLogout = () => {
-    router.push("/screens/login");
+    Alert.alert(
+      "Confirm Logout",
+      "Are you sure you want to logout?",
+      [
+        {
+          text: "Cancel",
+          style: "cancel"
+        },
+        { 
+          text: "Logout", 
+          onPress: async () => {
+            try {
+              await signOut(auth);
+              router.push("/screens/login");
+            } catch (error: any) {
+              console.error("Error signing out:", error);
+              Alert.alert("Logout Error", "Failed to logout. Please try again.");
+            }
+          }
+        }
+      ]
+    );
   };
 
   const handleSaveChanges = async () => {
     try {
       if (user) {
         // Update Firebase Auth profile
-        if (name && name !== user.displayName) {
+        if (name && name !== user.name) {
           await updateProfile(user, { displayName: name });
         }
         if (email && email !== user.email) {
@@ -84,9 +117,9 @@ export default function Settings() {
 
       // Check the isAdmin field to route appropriately
       if (userData.isAdmin) {
-        router.push("/screens/cameras");
+        router.push("/screens/tracking");
       } else {
-        router.push("/screens/notifications_student");
+        router.push("/screens/notifications_admin");
       }
     } catch (error: any) {
       Alert.alert('Error', error.message);
@@ -96,17 +129,12 @@ export default function Settings() {
   return (
     <View style={styles.container}>
       {/* Back Button */}
-      <TouchableOpacity style={styles.backButton} onPress={handleBack}>
-        <FontAwesome name="arrow-left" size={20} color="#fff" />
+      <TouchableOpacity style={styles.backButton} hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }} onPress={handleBack}>
+        <FontAwesome name="arrow-left" size={32} color="#fff" />
         <Text style={styles.backText}>Back</Text>
       </TouchableOpacity>
 
-      <Text style={styles.title}>SETTINGS</Text>
-
-      <Text style={styles.label}>School ID:</Text><Text style={styles.readOnly}>{schoolId}</Text>
-
-      <Text style={styles.label}>Role:</Text>
-      <Text style={styles.readOnly}>{role}</Text>
+      <Text style={styles.title}>ACCOUNT SETTINGS</Text>
 
       {/* Change Name */}
       <Text style={styles.label}>Name</Text>
@@ -150,6 +178,16 @@ export default function Settings() {
       <TouchableOpacity style={styles.helpButton} onPress={() => router.push("/screens/settings")}>
         <Text style={styles.helpButtonText}>HELP & SUPPORT</Text>
       </TouchableOpacity>
+
+      {/* Conditionally render Transfer Button only for verifiers */}
+      {isVerifier && (
+        <TouchableOpacity 
+          style={styles.transferButton} 
+          onPress={() => router.push("/screens/verification_transfer")}
+        >
+          <Text style={styles.transferButtonText}>TRANSFER VERIFIER PRIVILEGES</Text>
+        </TouchableOpacity>
+      )}
     </View>
   );
 }
@@ -157,7 +195,7 @@ export default function Settings() {
 const styles = StyleSheet.create({
   container: {flex: 1,backgroundColor: "#000",padding: 16,justifyContent: "center",},
   backButton: {position: "absolute", top: 50, left: 20, flexDirection: "row", alignItems: "center"},
-  backText: { color: "#fff", fontSize: 16, marginLeft: 5 },
+  backText: { color: "#fff", fontSize: 18, marginLeft: 5 },
   title: {color: "#fff", fontSize: 24, fontWeight: "bold", textAlign: "center", marginBottom: 24},
   label: {color: "#fff", fontSize: 16, marginBottom: 8},
   input: {backgroundColor: "#222",color: "#fff",padding: 12,borderRadius: 8,marginBottom: 16,fontSize: 16,},
@@ -170,4 +208,6 @@ const styles = StyleSheet.create({
   footerText: { fontSize: 14, color: "#bbb" },
   helpButton: { marginTop: 20, alignSelf: "center", paddingBottom: 20},
   helpButtonText: { color: "#fff", fontSize: 16},
+  transferButton: { marginTop: 20, alignSelf: "center", paddingBottom: 20},
+  transferButtonText: { color: "#fff", fontSize: 16},
 });
